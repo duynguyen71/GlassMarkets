@@ -16,6 +16,7 @@ import { useI18n } from '../i18n'
 import { useSource } from '../state/source'
 import { useNotify } from '../state/notify'
 import { useChangeWindow } from '../state/changeWindow'
+import { getNavItems } from '../config/navItems'
 
 export default function NavBar({ view, onChangeView, onOpenMobile }) {
   const { t, lang, setLang } = useI18n()
@@ -24,14 +25,7 @@ export default function NavBar({ view, onChangeView, onOpenMobile }) {
   const { enabled: notifEnabled, setEnabled: setNotifEnabled } = useNotify()
   const { window: changeWin, setWindow: setChangeWin } = useChangeWindow()
 
-  const items = [
-    { key: 'total', label: t('menu.globalOverview') },
-    { key: 'summary', label: t('menu.spotMarket') },
-    { key: 'ai', label: t('menu.aiSector') },
-    { key: 'oi', label: t('menu.openInterest') },
-    { key: 'surprise', label: t('menu.volumeSignals') },
-    { key: 'liquidations', label: t('menu.liquidationsFeed') },
-  ]
+  const items = getNavItems(t)
 
   const showSourceSelect = view === 'summary' || view === 'ai' || view === 'surprise'
 

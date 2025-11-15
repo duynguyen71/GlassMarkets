@@ -10,6 +10,7 @@ import SurpriseView from './views/SurpriseView'
 import LiquidationsView from './views/LiquidationsView'
 import TotalSummaryView from './views/TotalSummaryView'
 import AICoinsView from './views/AICoinsView'
+import FavoritesView from './views/FavoritesView'
 import Background from './components/Background'
 import Glass from './components/Glass'
 import SideNav from './components/SideNav'
@@ -82,6 +83,9 @@ export default function App() {
             </Box>
             <Box display={view === 'ai' ? 'block' : 'none'}>
               <AICoinsView tickers={tickers} loading={loading} onSelect={setSelected} />
+            </Box>
+            <Box display={view === 'favorites' ? 'block' : 'none'}>
+              <FavoritesView tickers={tickers} loading={loading} onSelect={setSelected} />
             </Box>
             <Box display={view === 'oi' ? 'block' : 'none'}>
               <OpenInterestView active={view === 'oi'} />

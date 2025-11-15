@@ -12,6 +12,7 @@ const dict = {
       openInterest: 'Open Interest',
       futuresMarket: 'Futures Market',
       volumeSignals: 'Volume Signals',
+      favorites: 'Favorites',
       liquidationsFeed: 'Liquidations Feed',
     },
     summary: {
@@ -33,6 +34,7 @@ const dict = {
       },
       typeSpot: 'Spot', typeFutures: 'Futures', typePerp: 'Perp',
       noResults: 'No markets found',
+      favorite: 'Favorite',
     },
     surprise: {
       title: 'Top Surprise Volume & Signals',
@@ -49,6 +51,10 @@ const dict = {
     },
     oi: { title: 'Open Interest (USDT-settled swaps)', totalOi: 'Total OI (ccy):', search: 'Search instrument (e.g. BTC-USDT-SWAP)' },
     liq: { title: 'Liquidations (recent)', window: 'Window', events: 'Events', long: 'Long', short: 'Short', search: 'Search instrument (e.g. BTC)' },
+    favorites: {
+      title: 'Favorites',
+      empty: 'Star spot pairs to keep them here.',
+    },
   },
   vi: {
     menu: {
@@ -59,6 +65,7 @@ const dict = {
       futuresMarket: 'Hợp Đồng Kỳ Hạn',
       volumeSignals: 'Tín Hiệu Khối Lượng',
       liquidationsFeed: 'Thanh Lý',
+      favorites: 'Yêu Thích',
     },
     summary: {
       pairsUsdt: 'Cặp (USDT)',
@@ -79,6 +86,7 @@ const dict = {
       },
       typeSpot: 'Spot', typeFutures: 'Futures', typePerp: 'Perp',
       noResults: 'Không có thị trường phù hợp',
+      favorite: 'Yêu thích',
     },
     surprise: {
       title: 'Khối Lượng Bất Ngờ & Tín Hiệu',
@@ -95,6 +103,10 @@ const dict = {
     },
     oi: { title: 'Hợp Đồng Mở (SWAP USDT)', totalOi: 'Tổng OI (đv tiền):', search: 'Tìm công cụ (vd. BTC-USDT-SWAP)' },
     liq: { title: 'Lệnh Thanh Lý (gần đây)', window: 'Khoảng', events: 'Sự kiện', long: 'Long', short: 'Short', search: 'Tìm công cụ (vd. BTC)' },
+    favorites: {
+      title: 'Yêu Thích',
+      empty: 'Gắn sao cho các cặp Spot để chúng xuất hiện ở đây.',
+    },
   },
 }
 

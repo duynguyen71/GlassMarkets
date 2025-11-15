@@ -1,5 +1,5 @@
 import { Badge, Box, HStack, IconButton, Input, Select, Table, TableContainer, Tbody, Td, Th, Thead, Tr, Text, useBreakpointValue, useColorModeValue, VStack } from '@chakra-ui/react'
-import { ChevronLeftIcon, ChevronRightIcon, TriangleUpIcon, TriangleDownIcon, MinusIcon, ArrowUpDownIcon } from '@chakra-ui/icons'
+import { ChevronLeftIcon, ChevronRightIcon, StarIcon, TriangleUpIcon, TriangleDownIcon, MinusIcon, ArrowUpDownIcon } from '@chakra-ui/icons'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearch } from '../state/search'
 import useLocalStorage from '../hooks/useLocalStorage'
@@ -12,11 +12,13 @@ import { useI18n } from '../i18n'
 import { useSource } from '../state/source'
 import { useChangeWindow } from '../state/changeWindow'
 import useWindowChange from '../hooks/useWindowChange'
+import { useFavorites } from '../state/favorites'
 
 export default function TickerTable({ tickers, symbolType = 'SPOT', typeLabel, defaultPageSize = 25, onSelect, loading }) {
   const { t } = useI18n()
   const { source } = useSource()
   const { window: changeWin } = useChangeWindow()
+  const { toggleFavorite, isFavorite } = useFavorites()
   const [query, setQuery] = useState('')
   const [sort, setSort] = useState({ key: 'volCcy24h', dir: 'desc' })
   const [page, setPage] = useState(1)
@@ -73,6 +75,8 @@ export default function TickerTable({ tickers, symbolType = 'SPOT', typeLabel, d
   const typeDisplay = typeLabel || (symbolType === 'SPOT' ? t('table.typeSpot') : t('table.typeFutures'))
   const isMobile = useBreakpointValue({ base: true, md: false })
   const showSkeleton = loading && filtered.length === 0
+  const showFavoriteColumn = symbolType === 'SPOT'
+  const columnCount = 7 + (showFavoriteColumn ? 1 : 0)
   const labels = {
     last: t('table.columns.last'),
     pct: pctLabel,
@@ -80,6 +84,7 @@ export default function TickerTable({ tickers, symbolType = 'SPOT', typeLabel, d
     low: t('table.columns.low'),
     vol: t('table.columns.volQuote24h'),
     trend: t('table.columns.trend'),
+    favorite: t('table.favorite'),
   }
 
   // Detect price changes and flash background briefly
@@ -142,6 +147,9 @@ export default function TickerTable({ tickers, symbolType = 'SPOT', typeLabel, d
                 effectiveWin={effectiveWin}
                 labels={labels}
                 typeDisplay={typeDisplay}
+                showFavorite={showFavoriteColumn}
+                toggleFavorite={toggleFavorite}
+                isFavorite={isFavorite}
               />
             ))}
           </VStack>
@@ -149,10 +157,15 @@ export default function TickerTable({ tickers, symbolType = 'SPOT', typeLabel, d
       ) : (
         <Glass p={2}>
           <TableContainer overflowX="auto">
-            <Table size="sm" variant="simple" minW={{ base: '100%', md: '720px' }}>
-              <Thead position="sticky" top={0} zIndex={1}>
-                <Tr borderBottomWidth="1px" borderColor={headDivider} role="group">
-                  <HeaderTh label={t('table.columns.symbol')} isFirst onClick={() => toggle('symbol')} active={sort.key==='symbol'} dir={sort.dir} />
+          <Table size="sm" variant="simple" minW={{ base: '100%', md: '720px' }}>
+            <Thead position="sticky" top={0} zIndex={1}>
+              <Tr borderBottomWidth="1px" borderColor={headDivider} role="group">
+                {showFavoriteColumn && (
+                  <Th px={{ base: 1, md: 2 }} textAlign="center" fontSize="xs">
+                    {labels.favorite}
+                  </Th>
+                )}
+                <HeaderTh label={t('table.columns.symbol')} isFirst onClick={() => toggle('symbol')} active={sort.key==='symbol'} dir={sort.dir} />
                   <HeaderTh label={t('table.columns.last')} isNumeric onClick={() => toggle('last')} active={sort.key==='last'} dir={sort.dir} />
                   <HeaderTh label={pctLabel} isNumeric onClick={() => toggle('change24hPct')} active={sort.key==='change24hPct'} dir={sort.dir} />
                   <HeaderTh label={t('table.columns.high')} isNumeric onClick={() => toggle('high24h')} active={sort.key==='high24h'} dir={sort.dir} />
@@ -162,22 +175,36 @@ export default function TickerTable({ tickers, symbolType = 'SPOT', typeLabel, d
                 </Tr>
               </Thead>
               <Tbody>
-                {showSkeleton ? (
-                  Array.from({ length: Math.min(pageSize, 10) }).map((_, i) => (
-                    <Tr key={`sk-${i}`}>
-                      <Td colSpan={7}>
-                        <Box py={2}><Box h="18px" bg="whiteAlpha.200" borderRadius="full" /></Box>
-                      </Td>
-                    </Tr>
-                  ))
-                ) : rows.length === 0 ? (
-                  <Tr>
-                    <Td colSpan={7}>
-                      <Text fontSize="sm" color="gray.400">{t('table.noResults')}</Text>
+              {showSkeleton ? (
+                Array.from({ length: Math.min(pageSize, 10) }).map((_, i) => (
+                  <Tr key={`sk-${i}`}>
+                    <Td colSpan={columnCount}>
+                      <Box py={2}><Box h="18px" bg="whiteAlpha.200" borderRadius="full" /></Box>
                     </Td>
                   </Tr>
-                ) : rows.map((row) => (
+                ))
+              ) : rows.length === 0 ? (
+                <Tr>
+                  <Td colSpan={columnCount}>
+                    <Text fontSize="sm" color="gray.400">{t('table.noResults')}</Text>
+                  </Td>
+                </Tr>
+              ) : rows.map((row) => {
+                const favoriteActive = showFavoriteColumn && isFavorite(row.symbol)
+                return (
                   <Tr key={row.symbol} _hover={{ bg: rowHover }}>
+                    {showFavoriteColumn && (
+                      <Td px={{ base: 1, md: 2 }} textAlign="center">
+                        <IconButton
+                          size="sm"
+                          aria-label={labels.favorite}
+                          variant="ghost"
+                          icon={<StarIcon />}
+                          color={favoriteActive ? 'yellow.400' : 'gray.400'}
+                          onClick={() => toggleFavorite(row.symbol)}
+                        />
+                      </Td>
+                    )}
                     <Td>
                       <HStack spacing={2}>
                         <TokenLogo base={row.base} />
@@ -196,7 +223,8 @@ export default function TickerTable({ tickers, symbolType = 'SPOT', typeLabel, d
                     <Td isNumeric>{formatNumber(row.volCcy24h, { notation: 'compact', maximumFractionDigits: 2 })}</Td>
                     <Td>{sparkFrom(row)}</Td>
                   </Tr>
-                ))}
+                )
+              })}
               </Tbody>
             </Table>
           </TableContainer>
@@ -224,9 +252,10 @@ export default function TickerTable({ tickers, symbolType = 'SPOT', typeLabel, d
   )
 }
 
-function MobileTickerCard({ row, symbolType, onSelect, effectiveWin, labels, typeDisplay }) {
+function MobileTickerCard({ row, symbolType, onSelect, effectiveWin, labels, typeDisplay, showFavorite, toggleFavorite, isFavorite }) {
   const change = effectiveWin === '24h' ? row.change24hPct : row._winPct
   const trendColor = (change || 0) >= 0 ? 'green.300' : 'red.300'
+  const favoriteActive = showFavorite && isFavorite(row.symbol)
   return (
     <Glass p={3} hoverLift w="100%">
       <HStack justify="space-between" align="flex-start">
@@ -242,10 +271,23 @@ function MobileTickerCard({ row, symbolType, onSelect, effectiveWin, labels, typ
             <Text fontSize="xs" color="gray.500">{row.symbol}</Text>
           </Box>
         </HStack>
-        <Box textAlign="right">
-          <Text fontSize="xs" color="gray.400">{labels.last}</Text>
-          <Text fontWeight="bold">{formatPrice(row.last)}</Text>
-        </Box>
+        <HStack align="flex-start" spacing={2}>
+          {showFavorite && (
+            <IconButton
+              icon={<StarIcon />}
+              aria-label={labels.favorite}
+              size="sm"
+              variant="ghost"
+              color={favoriteActive ? 'yellow.400' : 'gray.400'}
+              borderRadius="full"
+              onClick={() => toggleFavorite(row.symbol)}
+            />
+          )}
+          <Box textAlign="right">
+            <Text fontSize="xs" color="gray.400">{labels.last}</Text>
+            <Text fontWeight="bold">{formatPrice(row.last)}</Text>
+          </Box>
+        </HStack>
       </HStack>
       <VStack align="stretch" spacing={1.5} mt={3}>
         <RowStat label={labels.pct} value={formatPct(change ?? 0)} color={trendColor} />

@@ -6,6 +6,7 @@ import { SourceProvider } from './state/source'
 import { ChangeWindowProvider } from './state/changeWindow'
 import { NotifyProvider } from './state/notify'
 import { SearchProvider } from './state/search'
+import { FavoritesProvider } from './state/favorites'
 import theme from './theme'
 import { I18nProvider } from './i18n'
 
@@ -18,7 +19,9 @@ createRoot(document.getElementById('root')).render(
           <ChangeWindowProvider>
             <NotifyProvider>
               <SearchProvider>
-                <App />
+                  <FavoritesProvider>
+                    <App />
+                  </FavoritesProvider>
               </SearchProvider>
             </NotifyProvider>
           </ChangeWindowProvider>
