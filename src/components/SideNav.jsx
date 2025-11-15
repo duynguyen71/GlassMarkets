@@ -10,7 +10,6 @@ export default function SideNav({ active, onChange }) {
     { key: 'summary', label: t('menu.spotMarket'), icon: SearchIcon },
     { key: 'ai', label: t('menu.aiSector'), icon: StarIcon },
     { key: 'oi', label: t('menu.openInterest'), icon: TimeIcon },
-    { key: 'futures', label: t('menu.futuresMarket'), icon: RepeatIcon },
     { key: 'surprise', label: t('menu.volumeSignals'), icon: ViewIcon },
     { key: 'liquidations', label: t('menu.liquidationsFeed'), icon: WarningIcon },
   ]

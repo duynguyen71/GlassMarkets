@@ -23,6 +23,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/_bn/, ''),
       },
+      '/_bnf': {
+        target: 'https://fapi.binance.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/_bnf/, ''),
+      },
       '/_cg': {
         target: 'https://api.coingecko.com',
         changeOrigin: true,

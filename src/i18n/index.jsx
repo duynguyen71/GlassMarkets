@@ -32,6 +32,7 @@ const dict = {
         oiContracts: 'OI (contracts)', oiCcy: 'OI (ccy)', side: 'Side', size: 'Size', price: 'Price', time: 'Time'
       },
       typeSpot: 'Spot', typeFutures: 'Futures', typePerp: 'Perp',
+      noResults: 'No markets found',
     },
     surprise: {
       title: 'Top Surprise Volume & Signals',
@@ -77,6 +78,7 @@ const dict = {
         oiContracts: 'OI (hợp đồng)', oiCcy: 'OI (đv tiền)', side: 'Phe', size: 'Khối lượng', price: 'Giá', time: 'Thời gian'
       },
       typeSpot: 'Spot', typeFutures: 'Futures', typePerp: 'Perp',
+      noResults: 'Không có thị trường phù hợp',
     },
     surprise: {
       title: 'Khối Lượng Bất Ngờ & Tín Hiệu',
@@ -112,4 +114,3 @@ export function I18nProvider({ children }) {
 }
 
 export function useI18n() { return useContext(I18nContext) }
-

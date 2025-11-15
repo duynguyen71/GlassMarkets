@@ -1,4 +1,4 @@
-import { Badge, Box, Button, HStack, IconButton, Input, Select, Table, TableContainer, Tbody, Td, Th, Thead, Tr, Text, useColorModeValue } from '@chakra-ui/react'
+import { Badge, Box, HStack, IconButton, Input, Select, Table, TableContainer, Tbody, Td, Th, Thead, Tr, Text, useBreakpointValue, useColorModeValue, VStack } from '@chakra-ui/react'
 import { ChevronLeftIcon, ChevronRightIcon, TriangleUpIcon, TriangleDownIcon, MinusIcon, ArrowUpDownIcon } from '@chakra-ui/icons'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearch } from '../state/search'
@@ -13,7 +13,7 @@ import { useSource } from '../state/source'
 import { useChangeWindow } from '../state/changeWindow'
 import useWindowChange from '../hooks/useWindowChange'
 
-export default function TickerTable({ tickers, symbolType = 'SPOT', typeLabel = 'Spot', defaultPageSize = 25, onSelect, loading }) {
+export default function TickerTable({ tickers, symbolType = 'SPOT', typeLabel, defaultPageSize = 25, onSelect, loading }) {
   const { t } = useI18n()
   const { source } = useSource()
   const { window: changeWin } = useChangeWindow()
@@ -67,10 +67,20 @@ export default function TickerTable({ tickers, symbolType = 'SPOT', typeLabel = 
 
   // page size persisted via useLocalStorage
 
-  const thBg = useColorModeValue('whiteAlpha.800', 'whiteAlpha.200')
-  const theadBg = useColorModeValue('linear-gradient(to right, rgba(255,255,255,0.9), rgba(255,255,255,0.65))', 'linear-gradient(to right, rgba(255,255,255,0.15), rgba(255,255,255,0.1))')
+  const headDivider = useColorModeValue('blackAlpha.200', 'whiteAlpha.200')
   const rowHover = useColorModeValue('blackAlpha.50', 'whiteAlpha.100')
   const pctLabel = effectiveWin === '24h' ? t('table.columns.pct24h') : `${effectiveWin.toUpperCase()} %`
+  const typeDisplay = typeLabel || (symbolType === 'SPOT' ? t('table.typeSpot') : t('table.typeFutures'))
+  const isMobile = useBreakpointValue({ base: true, md: false })
+  const showSkeleton = loading && filtered.length === 0
+  const labels = {
+    last: t('table.columns.last'),
+    pct: pctLabel,
+    high: t('table.columns.high'),
+    low: t('table.columns.low'),
+    vol: t('table.columns.volQuote24h'),
+    trend: t('table.columns.trend'),
+  }
 
   // Detect price changes and flash background briefly
   useEffect(() => {
@@ -108,54 +118,90 @@ export default function TickerTable({ tickers, symbolType = 'SPOT', typeLabel = 
   return (
     <Box>
       <Input placeholder={t('table.searchSpot')} value={query} onChange={(e) => { setQuery(e.target.value); recordSearch(e.target.value) }} mb={2} variant="filled" bg="whiteAlpha.200" _hover={{ bg: 'whiteAlpha.300' }} _focus={{ bg: 'whiteAlpha.300' }} />
-      <Glass p={2}>
-        <TableContainer overflowX="auto">
-          <Table size="sm" variant="simple" minW="720px">
-            <Thead position="sticky" top={0} zIndex={1}>
-              <Tr bgGradient={theadBg} backdropFilter="blur(8px)" sx={{ WebkitBackdropFilter: 'blur(8px)' }}>
-                <HeaderTh label={t('table.columns.symbol')} isFirst onClick={() => toggle('symbol')} active={sort.key==='symbol'} dir={sort.dir} />
-                <HeaderTh label={t('table.columns.last')} isNumeric onClick={() => toggle('last')} active={sort.key==='last'} dir={sort.dir} />
-                <HeaderTh label={pctLabel} isNumeric onClick={() => toggle('change24hPct')} active={sort.key==='change24hPct'} dir={sort.dir} />
-                <HeaderTh label={t('table.columns.high')} isNumeric onClick={() => toggle('high24h')} active={sort.key==='high24h'} dir={sort.dir} />
-                <HeaderTh label={t('table.columns.low')} isNumeric onClick={() => toggle('low24h')} active={sort.key==='low24h'} dir={sort.dir} />
-                <HeaderTh label={t('table.columns.volQuote24h')} isNumeric onClick={() => toggle('volCcy24h')} active={sort.key==='volCcy24h'} dir={sort.dir} />
-                <Th bg={thBg} borderTopRightRadius="lg">{t('table.columns.trend')}</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {(loading && filtered.length === 0) ? (
-                Array.from({ length: Math.min(pageSize, 10) }).map((_, i) => (
-                  <Tr key={`sk-${i}`}>
+      {isMobile ? (
+        showSkeleton ? (
+          <VStack spacing={3} w="100%">
+            {Array.from({ length: Math.min(pageSize, 5) }).map((_, i) => (
+              <Glass key={`msk-${i}`} p={3} w="100%">
+                <Box h="64px" bg="whiteAlpha.100" borderRadius="xl" />
+              </Glass>
+            ))}
+          </VStack>
+        ) : filtered.length === 0 ? (
+          <Glass p={4}>
+            <Text fontSize="sm" color="gray.400">{t('table.noResults')}</Text>
+          </Glass>
+        ) : (
+          <VStack spacing={3} w="100%">
+            {rows.map((row) => (
+              <MobileTickerCard
+                key={row.symbol}
+                row={row}
+                symbolType={symbolType}
+                onSelect={onSelect}
+                effectiveWin={effectiveWin}
+                labels={labels}
+                typeDisplay={typeDisplay}
+              />
+            ))}
+          </VStack>
+        )
+      ) : (
+        <Glass p={2}>
+          <TableContainer overflowX="auto">
+            <Table size="sm" variant="simple" minW={{ base: '100%', md: '720px' }}>
+              <Thead position="sticky" top={0} zIndex={1}>
+                <Tr borderBottomWidth="1px" borderColor={headDivider} role="group">
+                  <HeaderTh label={t('table.columns.symbol')} isFirst onClick={() => toggle('symbol')} active={sort.key==='symbol'} dir={sort.dir} />
+                  <HeaderTh label={t('table.columns.last')} isNumeric onClick={() => toggle('last')} active={sort.key==='last'} dir={sort.dir} />
+                  <HeaderTh label={pctLabel} isNumeric onClick={() => toggle('change24hPct')} active={sort.key==='change24hPct'} dir={sort.dir} />
+                  <HeaderTh label={t('table.columns.high')} isNumeric onClick={() => toggle('high24h')} active={sort.key==='high24h'} dir={sort.dir} />
+                  <HeaderTh label={t('table.columns.low')} isNumeric onClick={() => toggle('low24h')} active={sort.key==='low24h'} dir={sort.dir} />
+                  <HeaderTh label={t('table.columns.volQuote24h')} isNumeric onClick={() => toggle('volCcy24h')} active={sort.key==='volCcy24h'} dir={sort.dir} isLast />
+                  <Th>{t('table.columns.trend')}</Th>
+                </Tr>
+              </Thead>
+              <Tbody>
+                {showSkeleton ? (
+                  Array.from({ length: Math.min(pageSize, 10) }).map((_, i) => (
+                    <Tr key={`sk-${i}`}>
+                      <Td colSpan={7}>
+                        <Box py={2}><Box h="18px" bg="whiteAlpha.200" borderRadius="full" /></Box>
+                      </Td>
+                    </Tr>
+                  ))
+                ) : rows.length === 0 ? (
+                  <Tr>
                     <Td colSpan={7}>
-                      <Box py={2}><Box h="18px" bg="whiteAlpha.200" borderRadius="full" /></Box>
+                      <Text fontSize="sm" color="gray.400">{t('table.noResults')}</Text>
                     </Td>
                   </Tr>
-                ))
-              ) : rows.map((row) => (
-                <Tr key={row.symbol} _hover={{ bg: rowHover }}>
-                  <Td>
-                    <HStack spacing={2}>
-                      <TokenLogo base={row.base} />
-                      <ClickableBadge onClick={() => onSelect && onSelect(row)}>{friendlySymbol(row.symbol, symbolType)}</ClickableBadge>
-                      <Badge colorScheme={symbolType === 'SPOT' ? 'purple' : 'orange'} variant="subtle">{symbolType === 'SPOT' ? t('table.typeSpot') : t('table.typeFutures')}</Badge>
-                    </HStack>
-                  </Td>
-                  <Td isNumeric>
-                    <Box as="span" px={1} py={0.5} borderRadius="md" bg={flash[row.symbol] === 'up' ? 'green.500' : flash[row.symbol] === 'down' ? 'red.500' : 'transparent'} opacity={flash[row.symbol] ? 0.25 : 1} transition="background-color 0.3s ease, opacity 0.3s ease">
-                      {formatPrice(row.last)}
-                    </Box>
-                  </Td>
-                  <Td isNumeric color={(effectiveWin === '24h' ? row.change24hPct : row._winPct) >= 0 ? 'green.400' : 'red.400'} fontWeight="semibold">{formatPct((effectiveWin === '24h' ? row.change24hPct : row._winPct) ?? 0)}</Td>
-                  <Td isNumeric>{formatPrice(row.high24h)}</Td>
-                  <Td isNumeric>{formatPrice(row.low24h)}</Td>
-                  <Td isNumeric>{formatNumber(row.volCcy24h, { notation: 'compact', maximumFractionDigits: 2 })}</Td>
-                  <Td>{sparkFrom(row)}</Td>
-                </Tr>
-              ))}
-            </Tbody>
-          </Table>
-        </TableContainer>
-      </Glass>
+                ) : rows.map((row) => (
+                  <Tr key={row.symbol} _hover={{ bg: rowHover }}>
+                    <Td>
+                      <HStack spacing={2}>
+                        <TokenLogo base={row.base} />
+                        <ClickableBadge onClick={() => onSelect && onSelect(row)}>{friendlySymbol(row.symbol, symbolType)}</ClickableBadge>
+                        <Badge colorScheme={symbolType === 'SPOT' ? 'purple' : 'orange'} variant="subtle">{typeDisplay}</Badge>
+                      </HStack>
+                    </Td>
+                    <Td isNumeric>
+                      <Box as="span" px={1} py={0.5} borderRadius="md" bg={flash[row.symbol] === 'up' ? 'green.500' : flash[row.symbol] === 'down' ? 'red.500' : 'transparent'} opacity={flash[row.symbol] ? 0.25 : 1} transition="background-color 0.3s ease, opacity 0.3s ease">
+                        {formatPrice(row.last)}
+                      </Box>
+                    </Td>
+                    <Td isNumeric color={(effectiveWin === '24h' ? row.change24hPct : row._winPct) >= 0 ? 'green.400' : 'red.400'} fontWeight="semibold">{formatPct((effectiveWin === '24h' ? row.change24hPct : row._winPct) ?? 0)}</Td>
+                    <Td isNumeric>{formatPrice(row.high24h)}</Td>
+                    <Td isNumeric>{formatPrice(row.low24h)}</Td>
+                    <Td isNumeric>{formatNumber(row.volCcy24h, { notation: 'compact', maximumFractionDigits: 2 })}</Td>
+                    <Td>{sparkFrom(row)}</Td>
+                  </Tr>
+                ))}
+              </Tbody>
+            </Table>
+          </TableContainer>
+        </Glass>
+      )}
 
       <HStack justify="space-between" mt={2}>
         <Text fontSize="sm" color="gray.400">
@@ -178,16 +224,77 @@ export default function TickerTable({ tickers, symbolType = 'SPOT', typeLabel = 
   )
 }
 
-function HeaderTh({ label, isNumeric, isFirst, onClick, active, dir }) {
-  const thBg = useColorModeValue('whiteAlpha.800', 'whiteAlpha.200')
+function MobileTickerCard({ row, symbolType, onSelect, effectiveWin, labels, typeDisplay }) {
+  const change = effectiveWin === '24h' ? row.change24hPct : row._winPct
+  const trendColor = (change || 0) >= 0 ? 'green.300' : 'red.300'
   return (
-    <Th bg={thBg} borderTopLeftRadius={isFirst ? 'lg' : undefined} isNumeric={isNumeric} cursor="pointer" onClick={onClick}>
+    <Glass p={3} hoverLift w="100%">
+      <HStack justify="space-between" align="flex-start">
+        <HStack spacing={3} align="flex-start">
+          <TokenLogo base={row.base} />
+          <Box>
+            <HStack spacing={2}>
+              <ClickableBadge onClick={() => onSelect && onSelect(row)}>{friendlySymbol(row.symbol, symbolType)}</ClickableBadge>
+              <Badge colorScheme={symbolType === 'SPOT' ? 'purple' : 'orange'} variant="subtle">
+                {typeDisplay}
+              </Badge>
+            </HStack>
+            <Text fontSize="xs" color="gray.500">{row.symbol}</Text>
+          </Box>
+        </HStack>
+        <Box textAlign="right">
+          <Text fontSize="xs" color="gray.400">{labels.last}</Text>
+          <Text fontWeight="bold">{formatPrice(row.last)}</Text>
+        </Box>
+      </HStack>
+      <VStack align="stretch" spacing={1.5} mt={3}>
+        <RowStat label={labels.pct} value={formatPct(change ?? 0)} color={trendColor} />
+        <RowStat label={labels.high} value={formatPrice(row.high24h)} />
+        <RowStat label={labels.low} value={formatPrice(row.low24h)} />
+        <RowStat label={labels.vol} value={formatNumber(row.volCcy24h, { notation: 'compact', maximumFractionDigits: 2 })} />
+        <HStack justify="space-between">
+          <Text fontSize="sm" color="gray.400">{labels.trend}</Text>
+          <Box>{sparkFrom(row)}</Box>
+        </HStack>
+      </VStack>
+    </Glass>
+  )
+}
+
+function RowStat({ label, value, color }) {
+  return (
+    <HStack justify="space-between">
+      <Text fontSize="sm" color="gray.400">{label}</Text>
+      <Text fontWeight="semibold" color={color}>{value}</Text>
+    </HStack>
+  )
+}
+
+function HeaderTh({ label, isNumeric, isFirst, isLast, onClick, active, dir }) {
+  const labelColor = useColorModeValue('gray.600', 'gray.300')
+  const accent = useColorModeValue('blue.400', 'blue.300')
+  const divider = useColorModeValue('blackAlpha.200', 'whiteAlpha.200')
+  return (
+    <Th
+      bg="transparent"
+      borderTopLeftRadius={isFirst ? 'md' : undefined}
+      borderTopRightRadius={isLast ? 'md' : undefined}
+      isNumeric={isNumeric}
+      cursor="pointer"
+      onClick={onClick}
+      borderBottomWidth="2px"
+      borderColor={active ? accent : 'transparent'}
+      px={{ base: 2, md: 3 }}
+      py={{ base: 1.5, md: 2 }}
+    >
       <HStack spacing={1} justify={isNumeric ? 'flex-end' : 'flex-start'}>
-        <Text fontSize="sm" fontWeight="semibold">{label}</Text>
+        <Text fontSize={{ base: 'xs', md: 'sm' }} fontWeight="semibold" color={labelColor}>
+          {label}
+        </Text>
         {active ? (
-          dir === 'asc' ? <TriangleUpIcon color="blue.300" boxSize={3} /> : <TriangleDownIcon color="blue.300" boxSize={3} />
+          dir === 'asc' ? <TriangleUpIcon color={accent} boxSize={3} /> : <TriangleDownIcon color={accent} boxSize={3} />
         ) : (
-          <ArrowUpDownIcon color="gray.400" boxSize={3} />
+          <ArrowUpDownIcon color={useColorModeValue('gray.400', 'gray.500')} boxSize={3} opacity={0} transition="opacity 0.15s ease" _groupHover={{ opacity: 1 }} />
         )}
       </HStack>
     </Th>

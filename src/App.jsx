@@ -5,7 +5,7 @@ import useLocalStorage from './hooks/useLocalStorage'
 import useSpotTickers from './hooks/useSpotTickers'
 import SummaryView from './views/SummaryView'
 import OpenInterestView from './views/OpenInterestView'
-import FuturesView from './views/FuturesView'
+// import FuturesView from './views/FuturesView'
 import SurpriseView from './views/SurpriseView'
 import LiquidationsView from './views/LiquidationsView'
 import TotalSummaryView from './views/TotalSummaryView'
@@ -38,6 +38,11 @@ export default function App() {
   const closeDrawer = () => setSelected(null)
 
   const showSourceSelect = view === 'summary' || view === 'ai' || view === 'surprise'
+
+  // Normalize hidden views
+  useEffect(() => {
+    if (view === 'futures') setView('summary')
+  }, [view, setView])
   const mobileNav = useDisclosure()
   const { lang, setLang, t } = useI18n()
 
@@ -81,9 +86,7 @@ export default function App() {
             <Box display={view === 'oi' ? 'block' : 'none'}>
               <OpenInterestView active={view === 'oi'} />
             </Box>
-            <Box display={view === 'futures' ? 'block' : 'none'}>
-              <FuturesView active={view === 'futures'} onSelect={setSelected} />
-            </Box>
+            {/* Futures view hidden */}
             <Box display={view === 'surprise' ? 'block' : 'none'}>
               <SurpriseView tickers={tickers} active={view === 'surprise'} onSelect={setSelected} />
             </Box>

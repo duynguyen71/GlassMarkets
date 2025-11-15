@@ -1,14 +1,16 @@
-import { Badge, Box, Heading, HStack, Input, Select, Table, TableContainer, Tbody, Td, Th, Thead, Tr, useColorModeValue } from '@chakra-ui/react'
+import { Badge, Box, Button, Heading, HStack, Input, Select, Table, TableContainer, Tbody, Td, Th, Thead, Tr, useColorModeValue } from '@chakra-ui/react'
 import Glass from '../components/Glass'
-import useOkxLiquidations from '../hooks/useOkxLiquidations'
 import { useEffect, useMemo, useState } from 'react'
 import useLocalStorage from '../hooks/useLocalStorage'
 import { friendlySymbol } from '../utils/symbol'
+import TokenLogo from '../components/TokenLogo'
+import useLiquidations from '../hooks/useLiquidations'
 
 export default function LiquidationsView({ active = true }) {
   const [lookback, setLookback] = useLocalStorage('pref:liqLookback', 30)
   const [query, setQuery] = useState('')
-  const { events, summary } = useOkxLiquidations({ lookbackMin: lookback, pollMs: 15000, enabled: active })
+  const [source, setSource] = useLocalStorage('pref:liqSource', 'Binance')
+  const { events, summary } = useLiquidations({ source, lookbackMin: lookback, pollMs: 15000, enabled: active })
   const thBg = useColorModeValue('whiteAlpha.600', 'whiteAlpha.200')
   const rowHover = useColorModeValue('blackAlpha.50', 'whiteAlpha.100')
 
@@ -24,13 +26,18 @@ export default function LiquidationsView({ active = true }) {
 
   return (
     <Box>
-      <Heading size="md" mb={2}>Liquidations (recent)</Heading>
+      <Heading size="md" mb={2}>Liquidations Feed</Heading>
       <Glass p={3} mb={2}>
-        <HStack spacing={4}>
-          <StatPill label="Events" value={summary.total} />
-          <StatPill label="Long" value={summary.longs} color="green" />
-          <StatPill label="Short" value={summary.shorts} color="red" />
+        <HStack spacing={4} justify="space-between">
+          <HStack spacing={4}>
+            <StatPill label="Events" value={summary.total} />
+            <StatPill label="Long" value={summary.longs} color="green" />
+            <StatPill label="Short" value={summary.shorts} color="red" />
+          </HStack>
           <HStack>
+            <Badge variant="subtle">Source</Badge>
+            <Button size="sm" variant={source==='Binance' ? 'solid' : 'outline'} onClick={()=>setSource('Binance')}>Binance</Button>
+            <Button size="sm" variant={source==='OKX' ? 'solid' : 'outline'} onClick={()=>setSource('OKX')}>OKX</Button>
             <Badge variant="subtle">Window</Badge>
             <Select size="sm" value={lookback} onChange={(e) => setLookback(Number(e.target.value))} width="auto">
               {[15, 30, 60, 120].map((m) => (
@@ -57,7 +64,7 @@ export default function LiquidationsView({ active = true }) {
             <Tbody>
               {filtered.map((e, i) => (
                 <Tr key={`${e.instId}-${e.ts}-${i}`} _hover={{ bg: rowHover }}>
-                  <Td><Badge>{friendlySymbol(e.instId)}</Badge></Td>
+                  <Td><HStack><TokenLogo base={e.base} /><Badge>{friendlySymbol(e.instId)}</Badge></HStack></Td>
                   <Td>
                     <Badge colorScheme={e.side === 'long' ? 'green' : 'red'}>{e.side || '-'}</Badge>
                   </Td>

@@ -10,7 +10,7 @@ function Card({ title, value, help, accent, gradient, icon }) {
   return (
     <Glass p={0} hoverLift>
       {accent ? <Box h="2" bg={accent} borderTopRadius="2xl" /> : null}
-      <Box p={4} position="relative" overflow="hidden">
+      <Box p={4} position="relative" overflow="hidden" minH="150px">
         {gradient ? <Box position="absolute" inset={0} opacity={0.18} bgGradient={gradient} /> : null}
         <Box position="relative">
           {icon ? <Box position="absolute" top={2} right={3}>{icon}</Box> : null}
@@ -91,7 +91,7 @@ export default function TotalSummaryView() {
           <GridItem>
             <Glass p={0} hoverLift>
               <Box h="2" bgGradient="linear(to-br, teal.400, green.500)" borderTopRadius="2xl" />
-              <Box p={4}>
+              <Box p={4} position="relative" minH="150px">
                 <Stat>
                   <StatLabel>Total Market Cap</StatLabel>
                   <HStack justify="space-between">
@@ -124,7 +124,7 @@ export default function TotalSummaryView() {
           <GridItem>
             <Glass p={0} hoverLift>
               <Box h="2" bgGradient="linear(to-br, yellow.400, orange.400)" borderTopRadius="2xl" />
-              <Box p={4}>
+              <Box p={4} position="relative" minH="150px">
                 <Stat>
                   <StatLabel>Bitcoin (BTC)</StatLabel>
                   <HStack justify="space-between">
@@ -142,7 +142,7 @@ export default function TotalSummaryView() {
           <GridItem>
             <Glass p={0} hoverLift>
               <Box h="2" bgGradient="linear(to-br, blue.400, cyan.400)" borderTopRadius="2xl" />
-              <Box p={4}>
+              <Box p={4} position="relative" minH="150px">
                 <Stat>
                   <StatLabel>Ethereum (ETH)</StatLabel>
                   <HStack justify="space-between">
@@ -160,7 +160,7 @@ export default function TotalSummaryView() {
           <GridItem>
             <Glass p={0} hoverLift>
               <Box h="2" bgGradient={fgGradient} borderTopRadius="2xl" />
-              <Box p={4}>
+              <Box p={4} position="relative" minH="150px">
                 <Stat>
                   <StatLabel>Fear & Greed</StatLabel>
                   <HStack justify="space-between">
@@ -177,7 +177,7 @@ export default function TotalSummaryView() {
           <GridItem>
             <Glass p={0} hoverLift>
               <Box h="2" bgGradient="linear(to-br, cyan.400, blue.500)" borderTopRadius="2xl" />
-              <Box p={4}>
+              <Box p={4} position="relative" minH="150px">
                 <Stat>
                   <StatLabel>S&P 500 (SPX)</StatLabel>
                   <HStack justify="space-between">
@@ -195,7 +195,7 @@ export default function TotalSummaryView() {
           <GridItem>
             <Glass p={0} hoverLift>
               <Box h="2" bgGradient="linear(to-br, yellow.400, orange.400)" borderTopRadius="2xl" />
-              <Box p={4}>
+              <Box p={4} position="relative" minH="150px">
                 <Stat>
                   <StatLabel>Gold (XAUUSD)</StatLabel>
                   <HStack justify="space-between">

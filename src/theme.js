@@ -52,6 +52,7 @@ const styles = {
         : 'linear-gradient(180deg, #0b1020 0%, #0a0f1e 100%)',
       WebkitFontSmoothing: 'antialiased',
       MozOsxFontSmoothing: 'grayscale',
+      overflowX: 'hidden',
     },
   }),
 }

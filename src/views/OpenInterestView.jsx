@@ -50,7 +50,7 @@ export default function OpenInterestView({ active = true }) {
       <Input placeholder={t('oi.search')} value={query} onChange={(e) => setQuery(e.target.value)} mb={2} variant="filled" bg="whiteAlpha.200" _hover={{ bg: 'whiteAlpha.300' }} _focus={{ bg: 'whiteAlpha.300' }} />
       <Glass p={2}>
         <TableContainer overflowX="auto">
-          <Table size="sm" minW="680px">
+          <Table size="sm" minW={{ base: '100%', md: '680px' }}>
             <Thead>
               <Tr backdropFilter="blur(6px)">
                 <Th bg={thBg} borderTopLeftRadius="lg" cursor="pointer" onClick={() => toggle('instId')}>{t('table.columns.symbol')} {sortIcon('instId')}</Th>
