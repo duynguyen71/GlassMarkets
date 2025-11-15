@@ -5,7 +5,7 @@ async function fetchText(url) { const r = await fetch(url, { cache: 'no-cache' }
 
 async function getFearGreed() {
   try {
-    const j = await fetchJSON('https://api.alternative.me/fng/?limit=2&format=json')
+    const j = await fetchJSON('/_fng/fng/?limit=2&format=json')
     const list = j?.data || []
     const latest = list[0]
     const prev = list[1]
@@ -95,7 +95,10 @@ async function getGold() {
 }
 
 export default function useGlobalSummary() {
-  const [state, setState] = useState({ loading: true })
+  // seed with cache when available to improve perceived performance and handle mobile limitations
+  let cached = null
+  try { cached = JSON.parse(localStorage.getItem('gs:cache') || 'null') } catch {}
+  const [state, setState] = useState(() => cached ? { ...cached, loading: true } : { loading: true })
 
   useEffect(() => {
     let cancelled = false
@@ -103,7 +106,7 @@ export default function useGlobalSummary() {
       setState((s) => ({ ...s, loading: true }))
       const [fng, cg, spx, gold, top] = await Promise.all([getFearGreed(), getCoingeckoGlobal(), getSP500(), getGold(), getTopPrices()])
       if (cancelled) return
-      setState({
+      const next = {
         loading: false,
         fng,
         totalMcap: cg.totalMcap,
@@ -117,7 +120,9 @@ export default function useGlobalSummary() {
         spx,
         gold,
         top,
-      })
+      }
+      setState(next)
+      try { localStorage.setItem('gs:cache', JSON.stringify(next)) } catch {}
     }
     load()
     const id = setInterval(load, 5 * 60 * 1000)

@@ -19,6 +19,7 @@ import usePriceAlerts from './hooks/usePriceAlerts'
 import usePopularityAlerts from './hooks/usePopularityAlerts'
 import CoinModal from './components/CoinModal'
 import MobileNav from './components/MobileNav'
+import NavBar from './components/NavBar'
 import { useI18n } from './i18n'
 
 export default function App() {
@@ -51,44 +52,19 @@ export default function App() {
   return (
     <Box minH="100vh" position="relative">
       <Background />
-      <Box position="sticky" top={0} zIndex={1000} px={{ base: 2, md: 4 }} py={1}>
-        <Glass p={{ base: 1, md: 2 }} mb={3} borderBottomWidth="1px" borderColor="whiteAlpha.200">
-          <Flex align="center" gap={2} position="relative" minH="48px">
-            <IconButton display={{ base: 'inline-flex', md: 'none' }} onClick={mobileNav.onOpen} aria-label="menu" icon={<HamburgerIcon />} variant="outline" borderRadius="full" />
-            <HStack spacing={2}>
-              <Image src="/pepe.svg" alt="logo" boxSize={5} borderRadius="md" />
-              <Heading size="sm">GlassMarkets</Heading>
-            </HStack>
-            <Spacer />
-            <HStack spacing={2} flexWrap="wrap" justify="flex-end" alignItems="center">
-              <Select size="sm" h={8} value={lang} onChange={(e) => setLang(e.target.value)} variant="filled" bg="whiteAlpha.200" _hover={{ bg: 'whiteAlpha.300' }} _focus={{ bg: 'whiteAlpha.300' }} borderRadius="full" px={2} minW="80px">
-                <option value="en">EN</option>
-                <option value="vi">VI</option>
-              </Select>
-              {showSourceSelect && (
-                <Select size="sm" h={8} value={source} onChange={(e) => setSource(e.target.value)} variant="filled" bg="whiteAlpha.200" _hover={{ bg: 'whiteAlpha.300' }} _focus={{ bg: 'whiteAlpha.300' }} borderRadius="full" px={2} minW="120px">
-                  <option value="OKX">OKX</option>
-                  <option value="Binance">Binance</option>
-                </Select>
-              )}
-              <Tooltip label={notifEnabled ? 'Disable alerts' : 'Enable alerts'}>
-                <IconButton aria-label="toggle notifications" onClick={() => setNotifEnabled((v) => !v)} size="sm" icon={<BellIcon />} colorScheme={notifEnabled ? 'green' : undefined} variant={notifEnabled ? 'solid' : 'outline'} borderRadius="full" h={8} minW={8} />
-              </Tooltip>
-              <IconButton aria-label="toggle color mode" onClick={toggleColorMode} size="sm" icon={colorMode === 'dark' ? <SunIcon /> : <MoonIcon />} h={8} minW={8} />
-            </HStack>
-          </Flex>
-        </Glass>
+      <NavBar view={view} onChangeView={setView} onOpenMobile={mobileNav.onOpen} />
 
-      {error && (
-        <Alert status="warning" mb={4}>
-          <AlertIcon />
-          <AlertDescription>
-            Could not load live data. Check CORS/network and try again.
-          </AlertDescription>
-        </Alert>
-      )}
+      <Box px={{ base: 3, md: 6 }} py={{ base: 3, md: 4 }} maxW="90rem" mx="auto">
+        {error && (
+          <Alert status="warning" mb={4}>
+            <AlertIcon />
+            <AlertDescription>
+              Could not load live data. Check CORS/network and try again.
+            </AlertDescription>
+          </Alert>
+        )}
 
-        <SimpleGrid columns={{ base: 1, md: 8, lg: 12 }} gap={4} alignItems="start">
+        <SimpleGrid columns={{ base: 1, md: 8, lg: 12 }} gap={{ base: 3, md: 4 }} alignItems="start">
           <Box display={{ base: 'none', md: 'block' }} gridColumn={{ md: 'span 2', lg: 'span 3' }}>
             <SideNav active={view} onChange={setView} />
           </Box>
@@ -117,9 +93,9 @@ export default function App() {
             <Text mt={6} color="gray.400" fontSize="sm">Data source: OKX free public REST/WebSocket APIs.</Text>
           </Box>
         </SimpleGrid>
+      </Box>
         <CoinModal isOpen={!!selected} onClose={closeDrawer} ticker={selected} source={source} symbolType={view === 'futures' ? 'FUTURES' : 'SPOT'} />
         <MobileNav isOpen={mobileNav.isOpen} onClose={mobileNav.onClose} active={view} onChange={setView} />
       </Box>
-    </Box>
   )
 }

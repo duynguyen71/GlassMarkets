@@ -7,6 +7,21 @@ export default defineConfig({
     host: true,
     port: 5173,
     proxy: {
+      '/_fng': {
+        target: 'https://api.alternative.me',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/_fng/, ''),
+      },
+      '/_okx': {
+        target: 'https://www.okx.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/_okx/, ''),
+      },
+      '/_bn': {
+        target: 'https://api.binance.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/_bn/, ''),
+      },
       '/_cg': {
         target: 'https://api.coingecko.com',
         changeOrigin: true,

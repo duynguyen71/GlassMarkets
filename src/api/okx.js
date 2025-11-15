@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const OKX_REST = 'https://www.okx.com'
+const OKX_REST = (import.meta?.env?.DEV ? '/_okx' : 'https://www.okx.com')
 const OKX_WS = 'wss://ws.okx.com:8443/ws/v5/public'
 
 export async function fetchSpotTickers() {

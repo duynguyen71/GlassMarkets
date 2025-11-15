@@ -1,4 +1,4 @@
-import { Badge, Box, Grid, GridItem, HStack, Link, Modal, ModalBody, ModalContent, ModalHeader, ModalOverlay, Progress, Spinner, Text } from '@chakra-ui/react'
+import { Badge, Box, Button, Grid, GridItem, HStack, Link, Modal, ModalBody, ModalContent, ModalHeader, ModalOverlay, ModalCloseButton, Progress, Spinner, Text } from '@chakra-ui/react'
 import { ExternalLinkIcon } from '@chakra-ui/icons'
 import { useEffect, useState } from 'react'
 import { friendlySymbol } from '../utils/symbol'
@@ -70,6 +70,7 @@ export default function CoinModal({ isOpen, onClose, ticker, source = 'OKX', sym
             <Badge variant="subtle" colorScheme={symbolType === 'SPOT' ? 'purple' : 'orange'}>{symbolType}</Badge>
           </HStack>
         </ModalHeader>
+        <ModalCloseButton />
         <ModalBody>
           <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }} gap={4} mb={4}>
             <GridItem>
@@ -101,12 +102,12 @@ export default function CoinModal({ isOpen, onClose, ticker, source = 'OKX', sym
             </GridItem>
           </Grid>
 
-          <Box>
+          <Box overflowX="hidden">
             <Text fontSize="sm" color="gray.400" mb={2}>5m closes (last 60)</Text>
             {loading ? (
               <Spinner />
             ) : (
-              <Sparkline data={series} width={560} height={120} stroke={trendColor.startsWith('green') ? '#22c55e' : '#ef4444'} />
+              <Sparkline data={series} width="100%" height={120} stroke={trendColor.startsWith('green') ? '#22c55e' : '#ef4444'} />
             )}
           </Box>
 
@@ -128,6 +129,10 @@ export default function CoinModal({ isOpen, onClose, ticker, source = 'OKX', sym
               <Text fontSize="sm" color="gray.400">Updated: {new Date(ticker.ts).toLocaleTimeString()}</Text>
             ) : null}
           </HStack>
+
+          <Button mt={4} w="100%" display={{ base: 'block', md: 'none' }} onClick={onClose} borderRadius="full" variant="outline">
+            Close
+          </Button>
         </ModalBody>
       </ModalContent>
     </Modal>

@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const BINANCE_REST = 'https://api.binance.com'
+const BINANCE_REST = (import.meta?.env?.DEV ? '/_bn' : 'https://api.binance.com')
 const BINANCE_WS = 'wss://stream.binance.com:9443/stream'
 
 function toInstId(sym) {
