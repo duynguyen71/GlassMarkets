@@ -3,9 +3,28 @@ import { useEffect, useState } from 'react'
 async function fetchJSON(url) { const r = await fetch(url, { cache: 'no-cache' }); if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() }
 async function fetchText(url) { const r = await fetch(url, { cache: 'no-cache' }); if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.text() }
 
+const PROXY_BASE = import.meta?.env?.VITE_PROXY_BASE || ''
+const isDev = !!import.meta?.env?.DEV
+
+function cgUrl(path) {
+  if (isDev) return `/_cg${path}`
+  if (PROXY_BASE) return `${PROXY_BASE}/cg${path}`
+  return `https://api.coingecko.com${path}`
+}
+function fngUrl(path) {
+  if (isDev) return `/_fng${path}`
+  if (PROXY_BASE) return `${PROXY_BASE}/fng${path}`
+  return `https://api.alternative.me${path}`
+}
+function stooqUrl(path) {
+  if (isDev) return `/_stooq${path}`
+  if (PROXY_BASE) return `${PROXY_BASE}/stooq${path}`
+  return `https://stooq.com${path}`
+}
+
 async function getFearGreed() {
   try {
-    const j = await fetchJSON('/_fng/fng/?limit=2&format=json')
+    const j = await fetchJSON(fngUrl('/fng/?limit=2&format=json'))
     const list = j?.data || []
     const latest = list[0]
     const prev = list[1]
@@ -18,7 +37,7 @@ async function getFearGreed() {
 
 async function getCoingeckoGlobal() {
   try {
-    const j = await fetchJSON('/_cg/api/v3/global')
+    const j = await fetchJSON(cgUrl('/api/v3/global'))
     const g = j?.data || {}
     const totalMcap = Number(g.total_market_cap?.usd || 0)
     const btcDom = Number(g.market_cap_percentage?.btc || 0)
@@ -36,7 +55,7 @@ async function getCoingeckoGlobal() {
 
 async function getTopPrices() {
   try {
-    const j = await fetchJSON('/_cg/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true')
+    const j = await fetchJSON(cgUrl('/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true'))
     const btc = j?.bitcoin || {}
     const eth = j?.ethereum || {}
     return {
@@ -74,7 +93,7 @@ function parseStooqDaily(csv) {
 async function getSP500() {
   try {
     // daily history to compute change; ^ encoded as %5E
-    const t = await fetchText('/_stooq/q/d/l/?s=%5Espx&i=d')
+    const t = await fetchText(stooqUrl('/q/d/l/?s=%5Espx&i=d'))
     const r = parseStooqDaily(t)
     if (!r) return { last: 0 }
     const chg = r.last - r.prev
@@ -85,7 +104,7 @@ async function getSP500() {
 
 async function getGold() {
   try {
-    const t = await fetchText('/_stooq/q/d/l/?s=xauusd&i=d')
+    const t = await fetchText(stooqUrl('/q/d/l/?s=xauusd&i=d'))
     const r = parseStooqDaily(t)
     if (!r) return { last: 0 }
     const chg = r.last - r.prev

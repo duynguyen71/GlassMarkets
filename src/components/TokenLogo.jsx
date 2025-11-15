@@ -1,5 +1,5 @@
 import { Avatar, useColorModeValue } from '@chakra-ui/react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 const ALIAS = {
   wbtc: 'btc', weth: 'eth', steth: 'eth', beth: 'eth', seth: 'eth', wsteth: 'eth',
@@ -24,6 +24,10 @@ function norm(sym) {
   return ALIAS[base] || base
 }
 
+const CACHE_KEY = (sym) => `iconSrc:${sym}`
+const CACHE_NONE_KEY = (sym) => `iconSrcNone:${sym}`
+const NONE_TTL_MS = 3 * 24 * 60 * 60 * 1000 // 3 days
+
 export default function TokenLogo({ base, size = 'sm', mr = 1 }) {
   const sym = norm(base)
   const candidates = useMemo(() => {
@@ -39,9 +43,45 @@ export default function TokenLogo({ base, size = 'sm', mr = 1 }) {
     }
     return urls
   }, [sym])
-
-  const [idx, setIdx] = useState(0)
+  const [idx, setIdx] = useState(() => {
+    if (!sym) return 0
+    try {
+      const none = JSON.parse(localStorage.getItem(CACHE_NONE_KEY(sym)) || 'null')
+      if (none && Date.now() - none.ts < NONE_TTL_MS) return Number.MAX_SAFE_INTEGER // skip attempts
+      const cached = JSON.parse(localStorage.getItem(CACHE_KEY(sym)) || 'null')
+      if (typeof cached?.i === 'number') return cached.i
+    } catch {}
+    return 0
+  })
   const src = candidates[idx] || undefined
+  const triedRef = useRef(new Set())
+
+  // Probe the current candidate; on success cache it, on failure advance
+  useEffect(() => {
+    if (!sym || !candidates.length) return
+    if (idx >= candidates.length) {
+      // exhausted; cache none for a while
+      try { localStorage.setItem(CACHE_NONE_KEY(sym), JSON.stringify({ ts: Date.now() })) } catch {}
+      return
+    }
+    const url = candidates[idx]
+    if (triedRef.current.has(url)) return
+    triedRef.current.add(url)
+    const img = new Image()
+    img.onload = () => {
+      try { localStorage.setItem(CACHE_KEY(sym), JSON.stringify({ i: idx, url })) } catch {}
+    }
+    img.onerror = () => {
+      // advance to next
+      setIdx((i) => i + 1)
+    }
+    img.src = url
+    // cleanup
+    return () => {
+      img.onload = null
+      img.onerror = null
+    }
+  }, [sym, candidates, idx])
 
   const fallbackColor = useColorModeValue('gray.800', 'white')
   if (!base) return <Avatar name={''} size={size} mr={mr} bg="blackAlpha.300" color={fallbackColor} />
