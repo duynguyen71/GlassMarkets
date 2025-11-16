@@ -6,12 +6,7 @@ export function getNavItems(t) {
     { key: 'summary', label: t('menu.spotMarket'), icon: SearchIcon },
     { key: 'search', label: t('menu.coinSearch'), icon: InfoIcon },
     { key: 'favorites', label: t('menu.favorites'), icon: StarIcon },
-    { key: 'ai', label: t('menu.aiSector'), icon: RepeatIcon },
-    { key: 'charts', label: t('menu.priceCharts'), icon: UpDownIcon },
     { key: 'news', label: t('menu.newsFeed'), icon: ChatIcon },
-    { key: 'stats', label: t('menu.marketStats'), icon: CalendarIcon },
-    { key: 'oi', label: t('menu.openInterest'), icon: TimeIcon },
-    { key: 'surprise', label: t('menu.volumeSignals'), icon: ViewIcon },
-    { key: 'liquidations', label: t('menu.liquidationsFeed'), icon: WarningIcon },
+    { key: 'ai', label: t('menu.aiSector'), icon: RepeatIcon },
   ]
 }

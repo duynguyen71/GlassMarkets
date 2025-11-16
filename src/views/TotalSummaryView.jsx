@@ -99,7 +99,6 @@ export default function TotalSummaryView({ active = true }) {
 
   return (
     <Box>
-      <Heading size="md" mb={3}>{t('total.title') || 'Global Market Summary'}</Heading>
       <Grid templateColumns={{ base: '1fr', md: 'repeat(3, 1fr)' }} gap={4}>
         <GridItem>
           <Glass p={0} hoverLift>

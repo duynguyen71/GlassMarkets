@@ -8,6 +8,7 @@ import {
   IconButton,
   Image,
   Spacer,
+  Text,
   Tooltip,
   useColorMode,
 } from '@chakra-ui/react'
@@ -74,9 +75,11 @@ export default function NavBar({ view, onChangeView, onOpenMobile }) {
         <Glass p={{ base: 1.5, md: 2 }}>
           {/* Desktop Layout */}
           <Flex align="center" gap={2} minH="56px" flexWrap="wrap" display={{ base: 'none', md: 'flex' }}>
-            <HStack spacing={2} minW={{ base: 'auto', md: '200px' }}>
-              <Image src="/pepe.svg" alt="logo" boxSize={6} borderRadius="md" />
-              <Box as="span" fontWeight="semibold">GlassMarkets</Box>
+            <HStack spacing={2}>
+              <Image src="/pepe.svg" alt="GlassMarkets" boxSize={8} />
+              <Text fontSize="xl" fontWeight="bold" bgGradient="linear(to-r, blue.400, purple.500)" bgClip="text">
+                GlassMarkets
+              </Text>
             </HStack>
 
             <Spacer />
@@ -136,8 +139,12 @@ export default function NavBar({ view, onChangeView, onOpenMobile }) {
                   borderRadius="full"
                   size="sm"
                 />
-                <Image src="/pepe.svg" alt="logo" boxSize={5} borderRadius="md" />
-                <Box as="span" fontWeight="semibold" fontSize="sm">GlassMarkets</Box>
+                <HStack spacing={1.5}>
+                  <Image src="/pepe.svg" alt="GlassMarkets" boxSize={7} />
+                  <Text fontSize="lg" fontWeight="bold" bgGradient="linear(to-r, blue.400, purple.500)" bgClip="text">
+                    GlassMarkets
+                  </Text>
+                </HStack>
               </HStack>
 
               <HStack spacing={1}>
