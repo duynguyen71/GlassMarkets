@@ -15,7 +15,9 @@ export const formatUSD = (n) => {
 
 export const formatPct = (n) => {
   if (n == null || Number.isNaN(n)) return '-'
-  return `${n >= 0 ? '+' : ''}${n.toFixed(2)}%`
+  const num = typeof n === 'string' ? parseFloat(n) : n
+  if (Number.isNaN(num)) return '-'
+  return `${num >= 0 ? '+' : ''}${num.toFixed(2)}%`
 }
 
 // Format crypto prices with adaptive precision so very small values are visible

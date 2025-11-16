@@ -12,6 +12,7 @@ import LiquidationsView from './views/LiquidationsView'
 import TotalSummaryView from './views/TotalSummaryView'
 import AICoinsView from './views/AICoinsView'
 import FavoritesView from './views/FavoritesView'
+import CoinSearchView from './views/CoinSearchView'
 import Background from './components/Background'
 import Glass from './components/Glass'
 import SideNav from './components/SideNav'
@@ -100,6 +101,7 @@ export default function App() {
             <Fade in={true} transition={{ enter: { duration: 0.15 } }}>
               {view === 'total' && <TotalSummaryView active={true} />}
               {view === 'summary' && <SummaryView tickers={tickers} loading={loading} summary={summary} onSelect={setSelected} />}
+              {view === 'search' && <CoinSearchView />}
               {view === 'ai' && <AICoinsView tickers={tickers} loading={loading} onSelect={setSelected} />}
               {view === 'favorites' && <FavoritesView tickers={tickers} loading={loading} onSelect={setSelected} />}
               {view === 'oi' && <OpenInterestView active={true} />}

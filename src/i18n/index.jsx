@@ -8,6 +8,7 @@ const dict = {
     menu: {
       globalOverview: 'Global Overview',
       spotMarket: 'Spot Market',
+      coinSearch: 'Coin Search',
       aiSector: 'AI Sector',
       openInterest: 'Open Interest',
       futuresMarket: 'Futures Market',
@@ -62,6 +63,7 @@ const dict = {
     menu: {
       globalOverview: 'Tổng Quan',
       spotMarket: 'Thị Trường Spot',
+      coinSearch: 'Tìm Kiếm Coin',
       aiSector: 'Mảng AI',
       openInterest: 'Hợp Đồng Mở',
       futuresMarket: 'Hợp Đồng Kỳ Hạn',
