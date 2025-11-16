@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { fetchSpotTickers as fetchOkxSpot, openOkxTickerStream } from '../api/okx'
 import { fetchSpotTickersBinance, openBinanceTickerStream } from '../api/binance'
 
-export default function useSpotTickers(source = 'OKX') {
+export default function useSpotTickers(source = 'OKX', refreshTrigger = 0) {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -46,7 +46,7 @@ export default function useSpotTickers(source = 'OKX') {
     }
     const cleanup = load()
     return () => { cancelled = true; if (unsubRef.current) unsubRef.current(); if (cleanup instanceof Function) cleanup() }
-  }, [source])
+  }, [source, refreshTrigger])
 
   const summary = useMemo(() => summarize(data), [data])
   return { tickers: data, loading, error, summary }

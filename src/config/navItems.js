@@ -1,4 +1,4 @@
-import { RepeatIcon, SearchIcon, StarIcon, TimeIcon, ViewIcon, WarningIcon } from '@chakra-ui/icons'
+import { RepeatIcon, SearchIcon, StarIcon, TimeIcon, ViewIcon, WarningIcon, UpDownIcon } from '@chakra-ui/icons'
 
 export function getNavItems(t) {
   return [

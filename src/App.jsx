@@ -1,8 +1,9 @@
 import { BellIcon, HamburgerIcon, MoonIcon, SunIcon } from '@chakra-ui/icons'
-import { Alert, AlertDescription, AlertIcon, Box, Flex, Heading, HStack, IconButton, Image, Select, SimpleGrid, Spacer, Text, Tooltip, useColorMode, useToast, useDisclosure } from '@chakra-ui/react'
+import { Alert, AlertDescription, AlertIcon, Box, Flex, Heading, HStack, IconButton, Image, Select, SimpleGrid, Spacer, Text, Tooltip, useColorMode, useToast, useDisclosure, Fade } from '@chakra-ui/react'
 import { useEffect, useState } from 'react'
 import useLocalStorage from './hooks/useLocalStorage'
 import useSpotTickers from './hooks/useSpotTickers'
+import usePageVisibility from './hooks/usePageVisibility'
 import SummaryView from './views/SummaryView'
 import OpenInterestView from './views/OpenInterestView'
 // import FuturesView from './views/FuturesView'
@@ -14,6 +15,7 @@ import FavoritesView from './views/FavoritesView'
 import Background from './components/Background'
 import Glass from './components/Glass'
 import SideNav from './components/SideNav'
+import ScrollToTop from './components/ScrollToTop'
 import { useSource } from './state/source'
 import { useNotify } from './state/notify'
 import usePriceAlerts from './hooks/usePriceAlerts'
@@ -27,7 +29,12 @@ export default function App() {
   const { colorMode, toggleColorMode } = useColorMode()
   const toast = useToast()
   const { source, setSource } = useSource()
-  const { tickers, loading, error, summary } = useSpotTickers(source)
+
+  // Page visibility detection - trigger refresh after 1 minute of being idle
+  const { shouldRefresh } = usePageVisibility(60000) // 60 seconds
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
+
+  const { tickers, loading, error, summary } = useSpotTickers(source, refreshTrigger)
   const [view, setView] = useLocalStorage('pref:view', 'total')
   const { enabled: notifEnabled, setEnabled: setNotifEnabled, canNotify } = useNotify()
 
@@ -40,9 +47,24 @@ export default function App() {
 
   const showSourceSelect = view === 'summary' || view === 'ai' || view === 'surprise'
 
+  // Trigger data refresh when page becomes visible after being idle
+  useEffect(() => {
+    if (shouldRefresh) {
+      setRefreshTrigger((prev) => prev + 1)
+      toast({
+        title: 'Data refreshed',
+        description: 'Fetching latest market data',
+        status: 'info',
+        duration: 2000,
+        isClosable: true,
+        position: 'bottom-right',
+      })
+    }
+  }, [shouldRefresh, toast])
+
   // Normalize hidden views
   useEffect(() => {
-    if (view === 'futures') setView('summary')
+    if (view === 'futures' || view === 'binanceAlpha') setView('summary')
   }, [view, setView])
   const mobileNav = useDisclosure()
   const { lang, setLang, t } = useI18n()
@@ -75,34 +97,22 @@ export default function App() {
             <SideNav active={view} onChange={setView} />
           </Box>
           <Box gridColumn={{ md: 'span 6', lg: 'span 9' }}>
-            <Box display={view === 'total' ? 'block' : 'none'}>
-              <TotalSummaryView />
-            </Box>
-            <Box display={view === 'summary' ? 'block' : 'none'}>
-              <SummaryView tickers={tickers} loading={loading} summary={summary} onSelect={setSelected} />
-            </Box>
-            <Box display={view === 'ai' ? 'block' : 'none'}>
-              <AICoinsView tickers={tickers} loading={loading} onSelect={setSelected} />
-            </Box>
-            <Box display={view === 'favorites' ? 'block' : 'none'}>
-              <FavoritesView tickers={tickers} loading={loading} onSelect={setSelected} />
-            </Box>
-            <Box display={view === 'oi' ? 'block' : 'none'}>
-              <OpenInterestView active={view === 'oi'} />
-            </Box>
-            {/* Futures view hidden */}
-            <Box display={view === 'surprise' ? 'block' : 'none'}>
-              <SurpriseView tickers={tickers} active={view === 'surprise'} onSelect={setSelected} />
-            </Box>
-            <Box display={view === 'liquidations' ? 'block' : 'none'}>
-              <LiquidationsView active={view === 'liquidations'} />
-            </Box>
+            <Fade in={true} transition={{ enter: { duration: 0.15 } }}>
+              {view === 'total' && <TotalSummaryView active={true} />}
+              {view === 'summary' && <SummaryView tickers={tickers} loading={loading} summary={summary} onSelect={setSelected} />}
+              {view === 'ai' && <AICoinsView tickers={tickers} loading={loading} onSelect={setSelected} />}
+              {view === 'favorites' && <FavoritesView tickers={tickers} loading={loading} onSelect={setSelected} />}
+              {view === 'oi' && <OpenInterestView active={true} />}
+              {view === 'surprise' && <SurpriseView tickers={tickers} active={true} onSelect={setSelected} />}
+              {view === 'liquidations' && <LiquidationsView active={true} />}
+            </Fade>
             <Text mt={6} color="gray.400" fontSize="sm">Data source: OKX free public REST/WebSocket APIs.</Text>
           </Box>
         </SimpleGrid>
       </Box>
         <CoinModal isOpen={!!selected} onClose={closeDrawer} ticker={selected} source={source} symbolType={view === 'futures' ? 'FUTURES' : 'SPOT'} />
         <MobileNav isOpen={mobileNav.isOpen} onClose={mobileNav.onClose} active={view} onChange={setView} />
+        <ScrollToTop />
       </Box>
   )
 }

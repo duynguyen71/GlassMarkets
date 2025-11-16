@@ -86,3 +86,75 @@ export async function fetchKlinesBinance(instId, { interval = '5m', limit = 60 }
   const res = await axios.get(url, { timeout: 15000 })
   return res?.data || []
 }
+
+// Fetch Binance Alpha coins from announcements or API
+export async function fetchBinanceAlphaCoins() {
+  try {
+    // Fetch from Binance's public API for announcements
+    // catalogId=48 is for "New Cryptocurrency Listing" which includes Alpha announcements
+    const url = 'https://www.binance.com/bapi/composite/v1/public/cms/article/list/query?type=1&catalogId=48&pageNo=1&pageSize=50'
+    const res = await axios.get(url, {
+      timeout: 15000,
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
+
+    const articles = res?.data?.data?.articles || []
+    const alphaCoins = new Set()
+
+    // Parse Binance Alpha announcements
+    articles.forEach(article => {
+      const title = article?.title || ''
+      const lowerTitle = title.toLowerCase()
+
+      // Look specifically for "binance alpha" announcements
+      if (lowerTitle.includes('binance alpha')) {
+        // Extract patterns like "Binance Alpha Lists COOKIE, AIXBT, TOKEN"
+        // or "Binance Alpha Project: TOKEN"
+
+        // Pattern 1: "Lists TOKEN1, TOKEN2, TOKEN3"
+        const listsMatch = title.match(/Lists?\s+([A-Z,\s&]+?)(?:\s+\(|\s*$)/i)
+        if (listsMatch) {
+          const tokens = listsMatch[1].split(/[,&\s]+/).filter(t => t.length >= 2 && t.length <= 10)
+          tokens.forEach(token => {
+            const upper = token.toUpperCase().trim()
+            if (upper && !['BINANCE', 'ALPHA', 'LISTS', 'AND', 'THE', 'PROJECT'].includes(upper)) {
+              alphaCoins.add(upper)
+            }
+          })
+        }
+
+        // Pattern 2: Extract all uppercase words (2-10 chars) that could be tokens
+        const words = title.match(/\b[A-Z]{2,10}\b/g) || []
+        words.forEach(word => {
+          if (!['BINANCE', 'ALPHA', 'LISTS', 'LIST', 'PROJECT', 'USDT', 'USDC', 'AND', 'THE', 'FOR', 'TO'].includes(word)) {
+            alphaCoins.add(word)
+          }
+        })
+      }
+    })
+
+    const result = Array.from(alphaCoins)
+
+    // If we got results, use them; otherwise use fallback
+    return result.length > 0 ? result : getFallbackAlphaCoins()
+  } catch (error) {
+    console.error('Failed to fetch Binance Alpha coins:', error)
+    return getFallbackAlphaCoins()
+  }
+}
+
+// Fallback list - Update this manually with actual Binance Alpha coins
+function getFallbackAlphaCoins() {
+  return [
+    // Batch 1-5 (Dec 2024 - Jan 2025)
+    'COOKIE', 'CERES', 'GRIFFAIN', 'KMNO', 'AIXBT',
+    'FROG', 'MONKY', 'TERMINUS', 'CGPT', 'UFD',
+    'LAYER', 'AVAAI', 'ZEREBRO', 'PIPPIN', 'AI16Z',
+
+    // Additional known Alpha listings
+    'PNUT', 'ACT', 'GOAT', 'VIRTUAL', 'SWARMS',
+    'SNAI', 'FARTCOIN', 'MILK',
+  ]
+}

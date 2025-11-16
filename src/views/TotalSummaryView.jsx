@@ -25,9 +25,9 @@ function Card({ title, value, help, accent, gradient, icon }) {
   )
 }
 
-export default function TotalSummaryView() {
+export default function TotalSummaryView({ active = true }) {
   const { t } = useI18n()
-  const { loading, fng, totalMcap, totalMcapChg, totalMcapChgPct, btcDom, ethDom, totalVolumeUsd, activeCryptos, markets, spx, gold, top } = useGlobalSummary()
+  const { loading, fng, totalMcap, totalMcapChg, totalMcapChgPct, btcDom, ethDom, totalVolumeUsd, activeCryptos, markets, spx, gold, top } = useGlobalSummary(active)
   const altDom = typeof btcDom === 'number' ? Math.max(0, 100 - btcDom) : null
   const fearVal = Number(fng?.value || 0)
   const fgScheme = fearVal >= 70 ? 'green' : fearVal >= 55 ? 'teal' : fearVal >= 45 ? 'yellow' : fearVal >= 25 ? 'orange' : 'red'

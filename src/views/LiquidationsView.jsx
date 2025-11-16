@@ -38,6 +38,7 @@ export default function LiquidationsView({ active = true }) {
             <Badge variant="subtle">Source</Badge>
             <Button size="sm" variant={source==='Binance' ? 'solid' : 'outline'} onClick={()=>setSource('Binance')}>Binance</Button>
             <Button size="sm" variant={source==='OKX' ? 'solid' : 'outline'} onClick={()=>setSource('OKX')}>OKX</Button>
+            <Button size="sm" variant={source==='Coinglass' ? 'solid' : 'outline'} onClick={()=>setSource('Coinglass')}>Coinglass</Button>
             <Badge variant="subtle">Window</Badge>
             <Select size="sm" value={lookback} onChange={(e) => setLookback(Number(e.target.value))} width="auto">
               {[15, 30, 60, 120].map((m) => (

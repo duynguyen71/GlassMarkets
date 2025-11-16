@@ -217,7 +217,13 @@ export default function TickerTable({ tickers, symbolType = 'SPOT', typeLabel, d
                         {formatPrice(row.last)}
                       </Box>
                     </Td>
-                    <Td isNumeric color={(effectiveWin === '24h' ? row.change24hPct : row._winPct) >= 0 ? 'green.400' : 'red.400'} fontWeight="semibold">{formatPct((effectiveWin === '24h' ? row.change24hPct : row._winPct) ?? 0)}</Td>
+                    <Td isNumeric color={(effectiveWin === '24h' ? row.change24hPct : row._winPct) >= 0 ? 'green.400' : 'red.400'} fontWeight="semibold">
+                      {effectiveWin !== '24h' && row._winPct == null ? (
+                        <Text as="span" color="gray.500" fontSize="xs">...</Text>
+                      ) : (
+                        formatPct((effectiveWin === '24h' ? row.change24hPct : row._winPct) ?? 0)
+                      )}
+                    </Td>
                     <Td isNumeric>{formatPrice(row.high24h)}</Td>
                     <Td isNumeric>{formatPrice(row.low24h)}</Td>
                     <Td isNumeric>{formatNumber(row.volCcy24h, { notation: 'compact', maximumFractionDigits: 2 })}</Td>
@@ -254,6 +260,7 @@ export default function TickerTable({ tickers, symbolType = 'SPOT', typeLabel, d
 
 function MobileTickerCard({ row, symbolType, onSelect, effectiveWin, labels, typeDisplay, showFavorite, toggleFavorite, isFavorite }) {
   const change = effectiveWin === '24h' ? row.change24hPct : row._winPct
+  const isLoading = effectiveWin !== '24h' && change == null
   const trendColor = (change || 0) >= 0 ? 'green.300' : 'red.300'
   const favoriteActive = showFavorite && isFavorite(row.symbol)
   return (
@@ -290,7 +297,7 @@ function MobileTickerCard({ row, symbolType, onSelect, effectiveWin, labels, typ
         </HStack>
       </HStack>
       <VStack align="stretch" spacing={1.5} mt={3}>
-        <RowStat label={labels.pct} value={formatPct(change ?? 0)} color={trendColor} />
+        <RowStat label={labels.pct} value={isLoading ? '...' : formatPct(change ?? 0)} color={trendColor} />
         <RowStat label={labels.high} value={formatPrice(row.high24h)} />
         <RowStat label={labels.low} value={formatPrice(row.low24h)} />
         <RowStat label={labels.vol} value={formatNumber(row.volCcy24h, { notation: 'compact', maximumFractionDigits: 2 })} />

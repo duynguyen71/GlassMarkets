@@ -24,6 +24,8 @@ const dict = {
       tracked: 'Tracked',
       sumUsdtPairs: 'Sum of USDT pairs',
       acrossPairs: 'Across tracked pairs',
+      showHighlights: 'Show Highlights',
+      hideHighlights: 'Hide Highlights',
     },
     movers: { topGainers: 'Top Gainers', topLosers: 'Top Losers' },
     table: {
@@ -76,6 +78,8 @@ const dict = {
       tracked: 'Theo dõi',
       sumUsdtPairs: 'Tổng các cặp USDT',
       acrossPairs: 'Trên các cặp theo dõi',
+      showHighlights: 'Hiện Nổi Bật',
+      hideHighlights: 'Ẩn Nổi Bật',
     },
     movers: { topGainers: 'Tăng Mạnh', topLosers: 'Giảm Mạnh' },
     table: {

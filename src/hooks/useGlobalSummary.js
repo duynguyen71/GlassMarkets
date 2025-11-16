@@ -113,13 +113,14 @@ async function getGold() {
   } catch (e) { return { error: String(e) } }
 }
 
-export default function useGlobalSummary() {
+export default function useGlobalSummary(enabled = true) {
   // seed with cache when available to improve perceived performance and handle mobile limitations
   let cached = null
   try { cached = JSON.parse(localStorage.getItem('gs:cache') || 'null') } catch {}
   const [state, setState] = useState(() => cached ? { ...cached, loading: true } : { loading: true })
 
   useEffect(() => {
+    if (!enabled) return
     let cancelled = false
     async function load() {
       setState((s) => ({ ...s, loading: true }))
@@ -146,7 +147,7 @@ export default function useGlobalSummary() {
     load()
     const id = setInterval(load, 5 * 60 * 1000)
     return () => { cancelled = true; clearInterval(id) }
-  }, [])
+  }, [enabled])
 
   return state
 }

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { fetchLiquidations as okxFetch } from '../api/okx'
 import { openBinanceForceOrders, fetchBinanceForceOrders } from '../api/binanceFutures'
+import { fetchMultipleSymbolLiquidations } from '../api/coinglass'
 
 export default function useLiquidations({ source = 'OKX', lookbackMin = 30, pollMs = 15000, enabled = true } = {}) {
   const [events, setEvents] = useState([])
@@ -18,6 +19,12 @@ export default function useLiquidations({ source = 'OKX', lookbackMin = 30, poll
       try {
         if (source === 'Binance') {
           const seedList = await fetchBinanceForceOrders(100)
+          if (!cancelled) setEvents((prev) => prune([...(prev || []), ...seedList]).sort((a,b)=>a.ts-b.ts))
+        } else if (source === 'Coinglass') {
+          const seedList = await fetchMultipleSymbolLiquidations({
+            symbols: ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'ADA', 'DOGE', 'MATIC'],
+            limit: 100
+          })
           if (!cancelled) setEvents((prev) => prune([...(prev || []), ...seedList]).sort((a,b)=>a.ts-b.ts))
         } else {
           const [swap, fut] = await Promise.allSettled([
