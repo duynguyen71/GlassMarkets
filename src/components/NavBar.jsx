@@ -11,6 +11,7 @@ import {
   Tooltip,
   useColorMode,
 } from '@chakra-ui/react'
+import { useState, useEffect } from 'react'
 import Glass from './Glass'
 import { useI18n } from '../i18n'
 import { useSource } from '../state/source'
@@ -29,8 +30,46 @@ export default function NavBar({ view, onChangeView, onOpenMobile }) {
 
   const showSourceSelect = view === 'summary' || view === 'ai' || view === 'surprise'
 
+  // Hide/show navbar on scroll (mobile only)
+  const [isVisible, setIsVisible] = useState(true)
+  const [lastScrollY, setLastScrollY] = useState(0)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY
+
+      // Only apply on mobile (check window width)
+      if (window.innerWidth >= 768) {
+        setIsVisible(true)
+        return
+      }
+
+      // Show navbar when scrolling up, hide when scrolling down
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        // Scrolling down & past 100px
+        setIsVisible(false)
+      } else {
+        // Scrolling up or near top
+        setIsVisible(true)
+      }
+
+      setLastScrollY(currentScrollY)
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [lastScrollY])
+
   return (
-    <Box position="sticky" top={0} zIndex={1000} px={{ base: 3, md: 6 }} py={1}>
+    <Box
+      position="sticky"
+      top={0}
+      zIndex={1000}
+      px={{ base: 3, md: 6 }}
+      py={1}
+      transform={{ base: isVisible ? 'translateY(0)' : 'translateY(-100%)', md: 'translateY(0)' }}
+      transition="transform 0.3s ease-in-out"
+    >
       <Box maxW="90rem" mx="auto">
         <Glass p={{ base: 1.5, md: 2 }}>
           {/* Desktop Layout */}

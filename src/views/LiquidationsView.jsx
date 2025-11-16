@@ -9,8 +9,8 @@ import useLiquidations from '../hooks/useLiquidations'
 export default function LiquidationsView({ active = true }) {
   const [lookback, setLookback] = useLocalStorage('pref:liqLookback', 30)
   const [query, setQuery] = useState('')
-  const [source, setSource] = useLocalStorage('pref:liqSource', 'Binance')
-  const { events, summary } = useLiquidations({ source, lookbackMin: lookback, pollMs: 15000, enabled: active })
+  const [source, setSource] = useLocalStorage('pref:liqSource', 'OKX')
+  const { events, summary, error } = useLiquidations({ source, lookbackMin: lookback, pollMs: 15000, enabled: active })
   const thBg = useColorModeValue('whiteAlpha.600', 'whiteAlpha.200')
   const rowHover = useColorModeValue('blackAlpha.50', 'whiteAlpha.100')
 
@@ -50,6 +50,16 @@ export default function LiquidationsView({ active = true }) {
       </Glass>
 
       <Input placeholder="Search instrument (e.g. BTC)" value={query} onChange={(e) => setQuery(e.target.value)} mb={2} variant="filled" bg="whiteAlpha.200" _hover={{ bg: 'whiteAlpha.300' }} _focus={{ bg: 'whiteAlpha.300' }} />
+
+      {error && (
+        <Glass p={4} mb={2} bg="red.900" borderColor="red.500">
+          <HStack spacing={2}>
+            <Badge colorScheme="red">Error</Badge>
+            <Box fontSize="sm" color="red.200">{error}</Box>
+          </HStack>
+        </Glass>
+      )}
+
       <Glass p={2}>
         <TableContainer>
           <Table size="sm">

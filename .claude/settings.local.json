@@ -4,7 +4,10 @@
       "WebSearch",
       "WebFetch(domain:www.binance.com)",
       "Bash(cat:*)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm view:*)"
     ],
     "deny": [],
     "ask": []

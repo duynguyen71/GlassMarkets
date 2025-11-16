@@ -13,6 +13,9 @@ import TotalSummaryView from './views/TotalSummaryView'
 import AICoinsView from './views/AICoinsView'
 import FavoritesView from './views/FavoritesView'
 import CoinSearchView from './views/CoinSearchView'
+import ChartsView from './views/ChartsView'
+import NewsView from './views/NewsView'
+import MarketStatsView from './views/MarketStatsView'
 import Background from './components/Background'
 import Glass from './components/Glass'
 import SideNav from './components/SideNav'
@@ -104,6 +107,9 @@ export default function App() {
               {view === 'search' && <CoinSearchView />}
               {view === 'ai' && <AICoinsView tickers={tickers} loading={loading} onSelect={setSelected} />}
               {view === 'favorites' && <FavoritesView tickers={tickers} loading={loading} onSelect={setSelected} />}
+              {view === 'charts' && <ChartsView active={true} onSelect={setSelected} />}
+              {view === 'news' && <NewsView active={true} />}
+              {view === 'stats' && <MarketStatsView active={true} />}
               {view === 'oi' && <OpenInterestView active={true} />}
               {view === 'surprise' && <SurpriseView tickers={tickers} active={true} onSelect={setSelected} />}
               {view === 'liquidations' && <LiquidationsView active={true} />}

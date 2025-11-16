@@ -6,7 +6,7 @@ import { useI18n } from '../i18n'
 import IconCircle from '../components/IconCircle'
 import TokenLogo from '../components/TokenLogo'
 
-function Card({ title, value, help, accent, gradient, icon }) {
+function Card({ title, value, help, accent, gradient, icon, loading }) {
   return (
     <Glass p={0} hoverLift>
       {accent ? <Box h="2" bg={accent} borderTopRadius="2xl" /> : null}
@@ -15,9 +15,23 @@ function Card({ title, value, help, accent, gradient, icon }) {
         <Box position="relative">
           {icon ? <Box position="absolute" top={2} right={3}>{icon}</Box> : null}
           <Stat>
-            <StatLabel>{title}</StatLabel>
-            <StatNumber fontWeight="extrabold">{value}</StatNumber>
-            {help ? <StatHelpText>{help}</StatHelpText> : null}
+            <StatLabel>
+              <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "100px" : "auto"}>
+                {title}
+              </Skeleton>
+            </StatLabel>
+            <StatNumber fontWeight="extrabold">
+              <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "120px" : "auto"}>
+                {value}
+              </Skeleton>
+            </StatNumber>
+            {help ? (
+              <StatHelpText>
+                <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "80px" : "auto"}>
+                  {help}
+                </Skeleton>
+              </StatHelpText>
+            ) : null}
           </Stat>
         </Box>
       </Box>
@@ -86,132 +100,218 @@ export default function TotalSummaryView({ active = true }) {
   return (
     <Box>
       <Heading size="md" mb={3}>{t('total.title') || 'Global Market Summary'}</Heading>
-      <Skeleton isLoaded={!loading} borderRadius="xl">
-        <Grid templateColumns={{ base: '1fr', md: 'repeat(3, 1fr)' }} gap={4}>
-          <GridItem>
-            <Glass p={0} hoverLift>
-              <Box h="2" bgGradient="linear(to-br, teal.400, green.500)" borderTopRadius="2xl" />
-              <Box p={4} position="relative" minH="150px">
-                <Stat>
-                  <StatLabel>Total Market Cap</StatLabel>
-                  <HStack justify="space-between">
-                    <StatNumber fontWeight="extrabold">{formatUSD(totalMcap)}</StatNumber>
-                    <Text color={(typeof totalMcapChg === 'number' && totalMcapChg >= 0) ? 'green.300' : 'red.300'}>
+      <Grid templateColumns={{ base: '1fr', md: 'repeat(3, 1fr)' }} gap={4}>
+        <GridItem>
+          <Glass p={0} hoverLift>
+            <Box h="2" bgGradient="linear(to-br, teal.400, green.500)" borderTopRadius="2xl" />
+            <Box p={4} position="relative" minH="150px">
+              <Stat>
+                <StatLabel>
+                  <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "120px" : "auto"}>
+                    Total Market Cap
+                  </Skeleton>
+                </StatLabel>
+                <HStack justify="space-between">
+                  <StatNumber fontWeight="extrabold">
+                    <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "140px" : "auto"}>
+                      {formatUSD(totalMcap)}
+                    </Skeleton>
+                  </StatNumber>
+                  <Text color={(typeof totalMcapChg === 'number' && totalMcapChg >= 0) ? 'green.300' : 'red.300'}>
+                    <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "100px" : "auto"}>
                       {totalMcapChg != null ? `${totalMcapChg >= 0 ? '+' : ''}${formatUSD(Math.abs(totalMcapChg))} (${(totalMcapChgPct || 0).toFixed(2)}%)` : ''}
-                    </Text>
-                  </HStack>
-                  <StatHelpText>All crypto, USD. 24h change</StatHelpText>
-                </Stat>
-                <Box position="absolute" top={2} right={3}><GlobeIcon /></Box>
-              </Box>
-            </Glass>
-          </GridItem>
-          <GridItem>
-            <Card title="Bitcoin Dominance" value={typeof btcDom === 'number' ? `${btcDom.toFixed(2)}%` : '-'} help="BTC share of total market cap" accent="orange.400" gradient="linear(to-br, orange.400, yellow.400)" icon={<PieIcon />} />
-          </GridItem>
-          <GridItem>
-            <Card title="Altcoin Index" value={altDom != null ? `${altDom.toFixed(2)}%` : '-'} help="100% - BTC dominance" accent="purple.500" gradient="linear(to-br, pink.400, purple.600)" icon={<PieIcon />} />
-          </GridItem>
-          <GridItem>
-            <Card title="ETH Dominance" value={typeof ethDom === 'number' ? `${ethDom.toFixed(2)}%` : '-'} help="ETH share of total market cap" accent="purple.400" gradient="linear(to-br, purple.400, indigo.500)" icon={<TokenLogo base="ETH" />} />
-          </GridItem>
-          <GridItem>
-            <Card title="24h Volume" value={formatUSD(totalVolumeUsd)} help="Total crypto volume, USD" accent="cyan.400" gradient="linear(to-br, cyan.400, teal.500)" icon={<WavesIcon />} />
-          </GridItem>
-          <GridItem>
-            <Card title="Active Cryptos" value={formatNumber(activeCryptos)} help={`Markets: ${formatNumber(markets)}`} accent="pink.400" gradient="linear(to-br, pink.400, red.500)" icon={<GridIcon />} />
-          </GridItem>
-          <GridItem>
-            <Glass p={0} hoverLift>
-              <Box h="2" bgGradient="linear(to-br, yellow.400, orange.400)" borderTopRadius="2xl" />
-              <Box p={4} position="relative" minH="150px">
-                <Stat>
-                  <StatLabel>Bitcoin (BTC)</StatLabel>
-                  <HStack justify="space-between">
-                    <StatNumber fontWeight="extrabold">{top?.btc?.price ? formatUSD(top.btc.price) : '-'}</StatNumber>
-                    <Text color={(top?.btc?.chgPct || 0) >= 0 ? 'green.300' : 'red.300'}>
+                    </Skeleton>
+                  </Text>
+                </HStack>
+                <StatHelpText>
+                  <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "150px" : "auto"}>
+                    All crypto, USD. 24h change
+                  </Skeleton>
+                </StatHelpText>
+              </Stat>
+              <Box position="absolute" top={2} right={3}><GlobeIcon /></Box>
+            </Box>
+          </Glass>
+        </GridItem>
+        <GridItem>
+          <Card title="Bitcoin Dominance" value={typeof btcDom === 'number' ? `${btcDom.toFixed(2)}%` : '-'} help="BTC share of total market cap" accent="orange.400" gradient="linear(to-br, orange.400, yellow.400)" icon={<PieIcon />} loading={loading} />
+        </GridItem>
+        <GridItem>
+          <Card title="Altcoin Index" value={altDom != null ? `${altDom.toFixed(2)}%` : '-'} help="100% - BTC dominance" accent="purple.500" gradient="linear(to-br, pink.400, purple.600)" icon={<PieIcon />} loading={loading} />
+        </GridItem>
+        <GridItem>
+          <Card title="ETH Dominance" value={typeof ethDom === 'number' ? `${ethDom.toFixed(2)}%` : '-'} help="ETH share of total market cap" accent="purple.400" gradient="linear(to-br, purple.400, indigo.500)" icon={<TokenLogo base="ETH" />} loading={loading} />
+        </GridItem>
+        <GridItem>
+          <Card title="24h Volume" value={formatUSD(totalVolumeUsd)} help="Total crypto volume, USD" accent="cyan.400" gradient="linear(to-br, cyan.400, teal.500)" icon={<WavesIcon />} loading={loading} />
+        </GridItem>
+        <GridItem>
+          <Card title="Active Cryptos" value={formatNumber(activeCryptos)} help={`Markets: ${formatNumber(markets)}`} accent="pink.400" gradient="linear(to-br, pink.400, red.500)" icon={<GridIcon />} loading={loading} />
+        </GridItem>
+        <GridItem>
+          <Glass p={0} hoverLift>
+            <Box h="2" bgGradient="linear(to-br, yellow.400, orange.400)" borderTopRadius="2xl" />
+            <Box p={4} position="relative" minH="150px">
+              <Stat>
+                <StatLabel>
+                  <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "100px" : "auto"}>
+                    Bitcoin (BTC)
+                  </Skeleton>
+                </StatLabel>
+                <HStack justify="space-between">
+                  <StatNumber fontWeight="extrabold">
+                    <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "120px" : "auto"}>
+                      {top?.btc?.price ? formatUSD(top.btc.price) : '-'}
+                    </Skeleton>
+                  </StatNumber>
+                  <Text color={(top?.btc?.chgPct || 0) >= 0 ? 'green.300' : 'red.300'}>
+                    <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "80px" : "auto"}>
                       {top?.btc?.chgPct != null ? `${top.btc.chgPct >= 0 ? '+' : ''}${(top.btc.chgPct || 0).toFixed(2)}%` : ''}
-                    </Text>
-                  </HStack>
-                  <StatHelpText>24h change</StatHelpText>
-                </Stat>
-                <Box position="absolute" top={2} right={3}><TokenLogo base="BTC" /></Box>
-              </Box>
-            </Glass>
-          </GridItem>
-          <GridItem>
-            <Glass p={0} hoverLift>
-              <Box h="2" bgGradient="linear(to-br, blue.400, cyan.400)" borderTopRadius="2xl" />
-              <Box p={4} position="relative" minH="150px">
-                <Stat>
-                  <StatLabel>Ethereum (ETH)</StatLabel>
-                  <HStack justify="space-between">
-                    <StatNumber fontWeight="extrabold">{top?.eth?.price ? formatUSD(top.eth.price) : '-'}</StatNumber>
-                    <Text color={(top?.eth?.chgPct || 0) >= 0 ? 'green.300' : 'red.300'}>
+                    </Skeleton>
+                  </Text>
+                </HStack>
+                <StatHelpText>
+                  <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "70px" : "auto"}>
+                    24h change
+                  </Skeleton>
+                </StatHelpText>
+              </Stat>
+              <Box position="absolute" top={2} right={3}><TokenLogo base="BTC" /></Box>
+            </Box>
+          </Glass>
+        </GridItem>
+        <GridItem>
+          <Glass p={0} hoverLift>
+            <Box h="2" bgGradient="linear(to-br, blue.400, cyan.400)" borderTopRadius="2xl" />
+            <Box p={4} position="relative" minH="150px">
+              <Stat>
+                <StatLabel>
+                  <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "100px" : "auto"}>
+                    Ethereum (ETH)
+                  </Skeleton>
+                </StatLabel>
+                <HStack justify="space-between">
+                  <StatNumber fontWeight="extrabold">
+                    <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "120px" : "auto"}>
+                      {top?.eth?.price ? formatUSD(top.eth.price) : '-'}
+                    </Skeleton>
+                  </StatNumber>
+                  <Text color={(top?.eth?.chgPct || 0) >= 0 ? 'green.300' : 'red.300'}>
+                    <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "80px" : "auto"}>
                       {top?.eth?.chgPct != null ? `${top.eth.chgPct >= 0 ? '+' : ''}${(top.eth.chgPct || 0).toFixed(2)}%` : ''}
-                    </Text>
-                  </HStack>
-                  <StatHelpText>24h change</StatHelpText>
-                </Stat>
-                <Box position="absolute" top={2} right={3}><TokenLogo base="ETH" /></Box>
-              </Box>
-            </Glass>
-          </GridItem>
-          <GridItem>
-            <Glass p={0} hoverLift>
-              <Box h="2" bgGradient={fgGradient} borderTopRadius="2xl" />
-              <Box p={4} position="relative" minH="150px">
-                <Stat>
-                  <StatLabel>Fear & Greed</StatLabel>
-                  <HStack justify="space-between">
-                    <StatNumber fontWeight="extrabold">{fng?.value != null ? String(fng.value) : '-'}</StatNumber>
-                    <Text color={(fng?.delta || 0) >= 0 ? 'green.300' : 'red.300'}>{fng?.delta != null ? `${fng.delta >= 0 ? '+' : ''}${fng.delta}` : ''}</Text>
-                  </HStack>
+                    </Skeleton>
+                  </Text>
+                </HStack>
+                <StatHelpText>
+                  <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "70px" : "auto"}>
+                    24h change
+                  </Skeleton>
+                </StatHelpText>
+              </Stat>
+              <Box position="absolute" top={2} right={3}><TokenLogo base="ETH" /></Box>
+            </Box>
+          </Glass>
+        </GridItem>
+        <GridItem>
+          <Glass p={0} hoverLift>
+            <Box h="2" bgGradient={fgGradient} borderTopRadius="2xl" />
+            <Box p={4} position="relative" minH="150px">
+              <Stat>
+                <StatLabel>
+                  <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "100px" : "auto"}>
+                    Fear & Greed
+                  </Skeleton>
+                </StatLabel>
+                <HStack justify="space-between">
+                  <StatNumber fontWeight="extrabold">
+                    <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "60px" : "auto"}>
+                      {fng?.value != null ? String(fng.value) : '-'}
+                    </Skeleton>
+                  </StatNumber>
+                  <Text color={(fng?.delta || 0) >= 0 ? 'green.300' : 'red.300'}>
+                    <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "50px" : "auto"}>
+                      {fng?.delta != null ? `${fng.delta >= 0 ? '+' : ''}${fng.delta}` : ''}
+                    </Skeleton>
+                  </Text>
+                </HStack>
+                <Skeleton isLoaded={!loading} mt={2} borderRadius="full">
                   <Progress mt={2} colorScheme={fgScheme} borderRadius="full" value={fearVal} max={100} height="2" />
-                  <StatHelpText mt={2}>{fng?.classification} • Scale 0 (Extreme Fear) — 100 (Extreme Greed)</StatHelpText>
-                </Stat>
-                <Box position="absolute" top={2} right={3}><GaugeIcon /></Box>
-              </Box>
-            </Glass>
-          </GridItem>
-          <GridItem>
-            <Glass p={0} hoverLift>
-              <Box h="2" bgGradient="linear(to-br, cyan.400, blue.500)" borderTopRadius="2xl" />
-              <Box p={4} position="relative" minH="150px">
-                <Stat>
-                  <StatLabel>S&P 500 (SPX)</StatLabel>
-                  <HStack justify="space-between">
-                    <StatNumber fontWeight="extrabold">{spx?.last ? formatNumber(spx.last) : '-'}</StatNumber>
-                    <Text color={spx?.chg >= 0 ? 'green.300' : 'red.300'}>
+                </Skeleton>
+                <StatHelpText mt={2}>
+                  <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "200px" : "auto"}>
+                    {fng?.classification} • Scale 0 (Extreme Fear) — 100 (Extreme Greed)
+                  </Skeleton>
+                </StatHelpText>
+              </Stat>
+              <Box position="absolute" top={2} right={3}><GaugeIcon /></Box>
+            </Box>
+          </Glass>
+        </GridItem>
+        <GridItem>
+          <Glass p={0} hoverLift>
+            <Box h="2" bgGradient="linear(to-br, cyan.400, blue.500)" borderTopRadius="2xl" />
+            <Box p={4} position="relative" minH="150px">
+              <Stat>
+                <StatLabel>
+                  <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "100px" : "auto"}>
+                    S&P 500 (SPX)
+                  </Skeleton>
+                </StatLabel>
+                <HStack justify="space-between">
+                  <StatNumber fontWeight="extrabold">
+                    <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "100px" : "auto"}>
+                      {spx?.last ? formatNumber(spx.last) : (spx?.unavailable ? 'N/A' : '-')}
+                    </Skeleton>
+                  </StatNumber>
+                  <Text color={spx?.chg >= 0 ? 'green.300' : 'red.300'}>
+                    <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "80px" : "auto"}>
                       {spxOpen && spx?.chg != null ? `${spx.chg >= 0 ? '+' : ''}${spx.chg.toFixed(2)} (${(spx.chgPct || 0).toFixed(2)}%)` : ''}
-                    </Text>
-                  </HStack>
-                  <StatHelpText>Close (Stooq)</StatHelpText>
-                </Stat>
-                <Box position="absolute" top={2} right={3}><LineIcon /></Box>
-              </Box>
-            </Glass>
-          </GridItem>
-          <GridItem>
-            <Glass p={0} hoverLift>
-              <Box h="2" bgGradient="linear(to-br, yellow.400, orange.400)" borderTopRadius="2xl" />
-              <Box p={4} position="relative" minH="150px">
-                <Stat>
-                  <StatLabel>Gold (XAUUSD)</StatLabel>
-                  <HStack justify="space-between">
-                    <StatNumber fontWeight="extrabold">{gold?.last ? formatNumber(gold.last) : '-'}</StatNumber>
-                    <Text color={gold?.chg >= 0 ? 'green.300' : 'red.300'}>
+                    </Skeleton>
+                  </Text>
+                </HStack>
+                <StatHelpText>
+                  <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "80px" : "auto"}>
+                    {spx?.unavailable ? 'CORS blocked' : 'Close (Stooq)'}
+                  </Skeleton>
+                </StatHelpText>
+              </Stat>
+              <Box position="absolute" top={2} right={3}><LineIcon /></Box>
+            </Box>
+          </Glass>
+        </GridItem>
+        <GridItem>
+          <Glass p={0} hoverLift>
+            <Box h="2" bgGradient="linear(to-br, yellow.400, orange.400)" borderTopRadius="2xl" />
+            <Box p={4} position="relative" minH="150px">
+              <Stat>
+                <StatLabel>
+                  <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "100px" : "auto"}>
+                    Gold (XAUUSD)
+                  </Skeleton>
+                </StatLabel>
+                <HStack justify="space-between">
+                  <StatNumber fontWeight="extrabold">
+                    <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "100px" : "auto"}>
+                      {gold?.last ? formatNumber(gold.last) : (gold?.unavailable ? 'N/A' : '-')}
+                    </Skeleton>
+                  </StatNumber>
+                  <Text color={gold?.chg >= 0 ? 'green.300' : 'red.300'}>
+                    <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "80px" : "auto"}>
                       {goldOpen && gold?.chg != null ? `${gold.chg >= 0 ? '+' : ''}${gold.chg.toFixed(2)} (${(gold.chgPct || 0).toFixed(2)}%)` : ''}
-                    </Text>
-                  </HStack>
-                  <StatHelpText>Close (Stooq)</StatHelpText>
-                </Stat>
-                <Box position="absolute" top={2} right={3}><GoldIcon /></Box>
-              </Box>
-            </Glass>
-          </GridItem>
-        </Grid>
-      </Skeleton>
+                    </Skeleton>
+                  </Text>
+                </HStack>
+                <StatHelpText>
+                  <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "80px" : "auto"}>
+                    {gold?.unavailable ? 'CORS blocked' : 'Close (Stooq)'}
+                  </Skeleton>
+                </StatHelpText>
+              </Stat>
+              <Box position="absolute" top={2} right={3}><GoldIcon /></Box>
+            </Box>
+          </Glass>
+        </GridItem>
+      </Grid>
       <Text mt={4} color="gray.400" fontSize="sm">Sources: CoinGecko (global), Alternative.me (Fear&Greed), Stooq (SPX/XAUUSD). Some sources may rate-limit or block cross-origin in certain networks.</Text>
     </Box>
   )

@@ -15,6 +15,9 @@ const dict = {
       volumeSignals: 'Volume Signals',
       favorites: 'Favorites',
       liquidationsFeed: 'Liquidations Feed',
+      priceCharts: 'Price Charts',
+      newsFeed: 'News Feed',
+      marketStats: 'Market Stats',
     },
     summary: {
       pairsUsdt: 'Pairs (USDT)',
@@ -70,6 +73,9 @@ const dict = {
       volumeSignals: 'Tín Hiệu Khối Lượng',
       liquidationsFeed: 'Thanh Lý',
       favorites: 'Yêu Thích',
+      priceCharts: 'Biểu Đồ Giá',
+      newsFeed: 'Tin Tức',
+      marketStats: 'Thống Kê Thị Trường',
     },
     summary: {
       pairsUsdt: 'Cặp (USDT)',

@@ -1,4 +1,4 @@
-import { Badge, Box, Button, ButtonGroup, Divider, Flex, Grid, GridItem, Heading, HStack, Link, Modal, ModalBody, ModalContent, ModalHeader, ModalOverlay, ModalCloseButton, Progress, Spinner, Stack, Text, VStack } from '@chakra-ui/react'
+import { Badge, Box, Button, ButtonGroup, Divider, Flex, Grid, GridItem, Heading, HStack, Link, Modal, ModalBody, ModalContent, ModalHeader, ModalOverlay, ModalCloseButton, Progress, Spinner, Stack, Text, VStack, Tabs, TabList, TabPanels, Tab, TabPanel } from '@chakra-ui/react'
 import { ExternalLinkIcon } from '@chakra-ui/icons'
 import { useEffect, useState } from 'react'
 import { friendlySymbol } from '../utils/symbol'
@@ -8,6 +8,7 @@ import { fetchKlinesBinance } from '../api/binance'
 import Sparkline from './Sparkline'
 import TokenLogo from './TokenLogo'
 import Glass from './Glass'
+import PriceChart from './PriceChart'
 
 const TIMEFRAME_OPTIONS = [
   { label: '5m', interval: '5m', bar: '5m', limit: 60 },
@@ -138,43 +139,56 @@ export default function CoinModal({ isOpen, onClose, ticker, source = 'OKX', sym
         <ModalBody px={6} pb={6} overflowY="auto" overflowX="hidden">
           <VStack align="stretch" spacing={6}>
 
-            {/* Price Chart */}
+            {/* Price Chart with Tabs */}
             <Box>
-              <Flex justify="space-between" align="center" mb={3} flexWrap="wrap" gap={2}>
-                <Text fontSize="sm" fontWeight="semibold" color="gray.400">
-                  Price Chart
-                </Text>
-                <ButtonGroup isAttached size="xs" variant="outline">
-                  {TIMEFRAME_OPTIONS.map((tf) => (
-                    <Button
-                      key={tf.label}
-                      onClick={() => setTimeframe(tf.label)}
-                      variant={timeframe === tf.label ? 'solid' : 'outline'}
-                      colorScheme={timeframe === tf.label ? 'blue' : 'gray'}
-                    >
-                      {tf.label.toUpperCase()}
-                    </Button>
-                  ))}
-                </ButtonGroup>
-              </Flex>
-              <Glass p={4}>
-                {loading ? (
-                  <Flex justify="center" align="center" h={140}>
-                    <Spinner color={trendColor} />
-                  </Flex>
-                ) : series.length > 0 ? (
-                  <Sparkline
-                    data={series}
-                    width="100%"
-                    height={140}
-                    stroke={trendColor.startsWith('green') ? '#22c55e' : '#ef4444'}
-                  />
-                ) : (
-                  <Flex justify="center" align="center" h={140}>
-                    <Text color="gray.500" fontSize="sm">No chart data available</Text>
-                  </Flex>
-                )}
-              </Glass>
+              <Text fontSize="sm" fontWeight="semibold" color="gray.400" mb={3}>
+                Price Chart
+              </Text>
+              <Tabs variant="soft-rounded" colorScheme="blue" size="sm">
+                <TabList mb={3}>
+                  <Tab fontSize="xs">Sparkline</Tab>
+                  <Tab fontSize="xs">Candlestick</Tab>
+                </TabList>
+                <TabPanels>
+                  <TabPanel p={0}>
+                    <Flex justify="flex-end" mb={3}>
+                      <ButtonGroup isAttached size="xs" variant="outline">
+                        {TIMEFRAME_OPTIONS.map((tf) => (
+                          <Button
+                            key={tf.label}
+                            onClick={() => setTimeframe(tf.label)}
+                            variant={timeframe === tf.label ? 'solid' : 'outline'}
+                            colorScheme={timeframe === tf.label ? 'blue' : 'gray'}
+                          >
+                            {tf.label.toUpperCase()}
+                          </Button>
+                        ))}
+                      </ButtonGroup>
+                    </Flex>
+                    <Glass p={4}>
+                      {loading ? (
+                        <Flex justify="center" align="center" h={140}>
+                          <Spinner color={trendColor} />
+                        </Flex>
+                      ) : series.length > 0 ? (
+                        <Sparkline
+                          data={series}
+                          width="100%"
+                          height={140}
+                          stroke={trendColor.startsWith('green') ? '#22c55e' : '#ef4444'}
+                        />
+                      ) : (
+                        <Flex justify="center" align="center" h={140}>
+                          <Text color="gray.500" fontSize="sm">No chart data available</Text>
+                        </Flex>
+                      )}
+                    </Glass>
+                  </TabPanel>
+                  <TabPanel p={0}>
+                    <PriceChart symbol={ticker?.symbol} source={source.toLowerCase()} />
+                  </TabPanel>
+                </TabPanels>
+              </Tabs>
             </Box>
 
             {/* 24h Range */}

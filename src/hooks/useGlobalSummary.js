@@ -95,22 +95,28 @@ async function getSP500() {
     // daily history to compute change; ^ encoded as %5E
     const t = await fetchText(stooqUrl('/q/d/l/?s=%5Espx&i=d'))
     const r = parseStooqDaily(t)
-    if (!r) return { last: 0 }
+    if (!r) return { last: null, unavailable: true }
     const chg = r.last - r.prev
     const chgPct = r.prev ? (chg / r.prev) * 100 : 0
     return { last: r.last, chg, chgPct }
-  } catch (e) { return { error: String(e) } }
+  } catch (e) {
+    console.warn('S&P 500 data unavailable (Stooq CORS):', e.message)
+    return { last: null, unavailable: true }
+  }
 }
 
 async function getGold() {
   try {
     const t = await fetchText(stooqUrl('/q/d/l/?s=xauusd&i=d'))
     const r = parseStooqDaily(t)
-    if (!r) return { last: 0 }
+    if (!r) return { last: null, unavailable: true }
     const chg = r.last - r.prev
     const chgPct = r.prev ? (chg / r.prev) * 100 : 0
     return { last: r.last, chg, chgPct }
-  } catch (e) { return { error: String(e) } }
+  } catch (e) {
+    console.warn('Gold data unavailable (Stooq CORS):', e.message)
+    return { last: null, unavailable: true }
+  }
 }
 
 export default function useGlobalSummary(enabled = true) {

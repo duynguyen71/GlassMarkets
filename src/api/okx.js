@@ -142,7 +142,8 @@ export function normalizeLiq(d) {
   const sz = Number(d.sz || d.size || 0)
   const px = Number(d.bkPx || d.px || d.price || 0)
   const ts = Number(d.ts || d.fillTime || Date.now())
-  return { instId, side, sz, px, ts }
+  const base = instId.split('-')[0] || ''
+  return { instId, side, sz, px, ts, base }
 }
 
 export async function fetchOpenInterest(instId) {
