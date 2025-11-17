@@ -1,11 +1,26 @@
 import { useEffect, useState } from 'react'
 
-async function fetchJSON(url) { const r = await fetch(url, { cache: 'no-cache' }); if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() }
-async function fetchText(url) { const r = await fetch(url, { cache: 'no-cache' }); if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.text() }
+async function fetchJSON(url) {
+  const r = await fetch(url, {
+    cache: 'no-cache',
+    mode: 'cors',
+  });
+  if (!r.ok) throw new Error(`HTTP ${r.status} - ${r.statusText}`);
+  return r.json()
+}
+
+async function fetchText(url) {
+  const r = await fetch(url, {
+    cache: 'no-cache',
+    mode: 'cors',
+  });
+  if (!r.ok) throw new Error(`HTTP ${r.status} - ${r.statusText}`);
+  return r.text()
+}
 
 const PROXY_BASE = import.meta?.env?.VITE_PROXY_BASE || ''
 const isDev = !!import.meta?.env?.DEV
-const STOOQ_PROXY_BASE = import.meta?.env?.VITE_STOOQ_PROXY || 'https://api.allorigins.win/raw?url='
+const STOOQ_PROXY_BASE = import.meta?.env?.VITE_STOOQ_PROXY || 'https://cold-silence-68b3.khanhduy-dev-bt.workers.dev'
 
 function cgUrl(path) {
   if (isDev) return `/_cg${path}`
@@ -23,23 +38,34 @@ function stooqUrl(path) {
   return `https://stooq.com${path}`
 }
 
-function buildStooqProxyUrl(target) {
+function buildStooqProxyPath(path) {
   if (!STOOQ_PROXY_BASE) {
-    return target
+    return null
   }
-  if (STOOQ_PROXY_BASE.includes('{{url}}')) {
-    return STOOQ_PROXY_BASE.replace('{{url}}', encodeURIComponent(target))
-  }
-  return `${STOOQ_PROXY_BASE}${encodeURIComponent(target)}`
+  const base = STOOQ_PROXY_BASE.endsWith('/') ? STOOQ_PROXY_BASE : `${STOOQ_PROXY_BASE}/`
+  return new URL(`stooq${path}`, base).toString()
 }
 
 async function fetchStooq(path) {
   if (isDev || PROXY_BASE) {
     return fetchText(stooqUrl(path))
   }
+  const proxyUrl = buildStooqProxyPath(path)
+  if (proxyUrl) {
+    return fetchText(proxyUrl)
+  }
   const targetUrl = `https://stooq.com${path}`
-  const proxyUrl = buildStooqProxyUrl(targetUrl)
-  return fetchText(proxyUrl)
+  return fetchText(`https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`)
+}
+
+// Helper function to add timeout to fetch
+function fetchWithTimeout(url, options = {}, timeout = 8000) {
+  return Promise.race([
+    fetch(url, options),
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Request timeout')), timeout)
+    )
+  ])
 }
 
 async function getFearGreed() {
@@ -52,12 +78,20 @@ async function getFearGreed() {
     const prevValue = Number(prev?.value || 0)
     const delta = Number.isFinite(prevValue) ? value - prevValue : null
     return { value, classification: latest?.value_classification || '-', prev: prevValue, delta }
-  } catch (e) { return { error: String(e) } }
+  } catch (e) {
+    console.warn('Fear & Greed API error:', e.message)
+    return { error: String(e) }
+  }
 }
 
 async function getCoingeckoGlobal() {
   try {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10s timeout
+
     const j = await fetchJSON(cgUrl('/api/v3/global'))
+    clearTimeout(timeoutId)
+
     const g = j?.data || {}
     const totalMcap = Number(g.total_market_cap?.usd || 0)
     const btcDom = Number(g.market_cap_percentage?.btc || 0)
@@ -70,19 +104,38 @@ async function getCoingeckoGlobal() {
     const prevMcap = chgPct ? (totalMcap / (1 + chgPct / 100)) : null
     const chg = prevMcap != null ? (totalMcap - prevMcap) : null
     return { totalMcap, btcDom, ethDom, totalVolumeUsd, activeCryptos, markets, totalMcapChg: chg, totalMcapChgPct: chgPct }
-  } catch (e) { return { error: String(e) } }
+  } catch (e) {
+    console.warn('CoinGecko Global API error:', e.message)
+    // Return cached data on rate limit
+    if (e.message.includes('429')) {
+      return { error: 'Rate limited - using cached data' }
+    }
+    return { error: String(e) }
+  }
 }
 
 async function getTopPrices() {
   try {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10s timeout
+
     const j = await fetchJSON(cgUrl('/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true'))
+    clearTimeout(timeoutId)
+
     const btc = j?.bitcoin || {}
     const eth = j?.ethereum || {}
     return {
       btc: { price: Number(btc.usd || 0), chgPct: Number(btc.usd_24h_change || 0) },
       eth: { price: Number(eth.usd || 0), chgPct: Number(eth.usd_24h_change || 0) },
     }
-  } catch (e) { return { error: String(e) } }
+  } catch (e) {
+    console.warn('CoinGecko Prices API error:', e.message)
+    // Return cached data on rate limit
+    if (e.message.includes('429')) {
+      return { error: 'Rate limited - using cached data' }
+    }
+    return { error: String(e) }
+  }
 }
 
 // Stooq CSV helpers (simple, public). Example: https://stooq.com/q/l/?s=^spx&i=d
@@ -142,36 +195,125 @@ async function getGold() {
 export default function useGlobalSummary(enabled = true) {
   // seed with cache when available to improve perceived performance and handle mobile limitations
   let cached = null
-  try { cached = JSON.parse(localStorage.getItem('gs:cache') || 'null') } catch {}
-  const [state, setState] = useState(() => cached ? { ...cached, loading: true } : { loading: true })
+  let cacheTimestamp = null
+  try {
+    const cacheData = localStorage.getItem('gs:cache')
+    const cacheTimeData = localStorage.getItem('gs:cache_time')
+    if (cacheData) {
+      cached = JSON.parse(cacheData)
+      cacheTimestamp = cacheTimeData ? parseInt(cacheTimeData) : null
+    }
+  } catch {}
+
+  const [state, setState] = useState(() => {
+    if (cached && cacheTimestamp) {
+      const age = Date.now() - cacheTimestamp
+      // Use cache if it's less than 4 minutes old (to avoid 5min refresh conflicts)
+      const isFresh = age < 4 * 60 * 1000
+      return { ...cached, loading: !isFresh }
+    }
+    return { loading: true }
+  })
 
   useEffect(() => {
     if (!enabled) return
     let cancelled = false
+
     async function load() {
       setState((s) => ({ ...s, loading: true }))
-      const [fng, cg, spx, gold, top] = await Promise.all([getFearGreed(), getCoingeckoGlobal(), getSP500(), getGold(), getTopPrices()])
-      if (cancelled) return
-      const next = {
-        loading: false,
-        fng,
-        totalMcap: cg.totalMcap,
-        totalMcapChg: cg.totalMcapChg,
-        totalMcapChgPct: cg.totalMcapChgPct,
-        btcDom: cg.btcDom,
-        ethDom: cg.ethDom,
-        totalVolumeUsd: cg.totalVolumeUsd,
-        activeCryptos: cg.activeCryptos,
-        markets: cg.markets,
-        spx,
-        gold,
-        top,
+
+      try {
+        // Check if we have fresh cache to avoid unnecessary API calls
+        const now = Date.now()
+        const currentCacheTime = localStorage.getItem('gs:cache_time')
+        const cacheAge = currentCacheTime ? now - parseInt(currentCacheTime) : Infinity
+
+        // If cache is fresh (< 2 min), use it and only refresh in background
+        const useCache = cacheAge < 2 * 60 * 1000
+        if (useCache && cached) {
+          setState(prev => ({ ...prev, loading: false }))
+        }
+
+        // Load critical data first with delay to avoid rate limiting
+        const [fng] = await Promise.all([
+          getFearGreed().catch(e => ({ error: String(e) }))
+        ])
+
+        if (cancelled) return
+
+        // Add delay before CoinGecko calls to respect rate limits
+        await new Promise(resolve => setTimeout(resolve, 1000))
+
+        const [cg, top] = await Promise.all([
+          getCoingeckoGlobal().catch(e => ({ error: String(e) })),
+          getTopPrices().catch(e => ({ error: String(e) }))
+        ])
+
+        if (cancelled) return
+
+        // Update with critical market data
+        const criticalData = {
+          fng,
+          totalMcap: cg.totalMcap,
+          totalMcapChg: cg.totalMcapChg,
+          totalMcapChgPct: cg.totalMcapChgPct,
+          btcDom: cg.btcDom,
+          ethDom: cg.ethDom,
+          totalVolumeUsd: cg.totalVolumeUsd,
+          activeCryptos: cg.activeCryptos,
+          markets: cg.markets,
+          top,
+        }
+
+        setState(prev => ({
+          ...prev,
+          loading: false,
+          ...criticalData,
+        }))
+
+        // Cache the critical data immediately
+        const partialState = { loading: true, ...criticalData }
+        try {
+          localStorage.setItem('gs:cache', JSON.stringify(partialState))
+          localStorage.setItem('gs:cache_time', Date.now().toString())
+        } catch {}
+
+        // Load secondary data (traditional markets) with another delay
+        await new Promise(resolve => setTimeout(resolve, 500))
+
+        const [spx, gold] = await Promise.all([
+          getSP500().catch(e => ({ error: String(e), unavailable: true })),
+          getGold().catch(e => ({ error: String(e), unavailable: true }))
+        ])
+
+        if (cancelled) return
+
+        // Final update with all data
+        const next = {
+          loading: false,
+          ...criticalData,
+          spx,
+          gold,
+        }
+
+        setState(next)
+        try {
+          localStorage.setItem('gs:cache', JSON.stringify(next))
+          localStorage.setItem('gs:cache_time', Date.now().toString())
+        } catch {}
+
+      } catch (e) {
+        console.error('Failed to load global summary:', e)
+        if (!cancelled) {
+          setState(prev => ({ ...prev, loading: false, error: String(e) }))
+        }
       }
-      setState(next)
-      try { localStorage.setItem('gs:cache', JSON.stringify(next)) } catch {}
     }
+
     load()
-    const id = setInterval(load, 5 * 60 * 1000)
+
+    // Increase refresh interval to 7 minutes to avoid rate limiting
+    const id = setInterval(load, 7 * 60 * 1000)
     return () => { cancelled = true; clearInterval(id) }
   }, [enabled])
 

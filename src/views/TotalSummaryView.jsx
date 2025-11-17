@@ -1,10 +1,11 @@
-import { Box, Grid, GridItem, Heading, HStack, Progress, Skeleton, Stat, StatHelpText, StatLabel, StatNumber, Text } from '@chakra-ui/react'
+import { Box, Grid, GridItem, Heading, HStack, Progress, Skeleton, Stat, StatLabel, StatNumber, Text } from '@chakra-ui/react'
 import Glass from '../components/Glass'
 import useGlobalSummary from '../hooks/useGlobalSummary'
 import { formatNumber, formatUSD } from '../utils/number'
 import { useI18n } from '../i18n'
 import IconCircle from '../components/IconCircle'
 import TokenLogo from '../components/TokenLogo'
+import { SkeletonMarketCapCard, SkeletonSummaryCard } from '../components/SkeletonLoader'
 
 function Card({ title, value, help, accent, gradient, icon, loading }) {
   return (
@@ -26,11 +27,11 @@ function Card({ title, value, help, accent, gradient, icon, loading }) {
               </Skeleton>
             </StatNumber>
             {help ? (
-              <StatHelpText>
+              <Box fontSize="sm" color="gray.500" mt={1} as="span">
                 <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "80px" : "auto"}>
                   {help}
                 </Skeleton>
-              </StatHelpText>
+              </Box>
             ) : null}
           </Stat>
         </Box>
@@ -97,6 +98,49 @@ export default function TotalSummaryView({ active = true }) {
   // Gold spot (approx): 24x5; hide changes on weekend (Sat) and before Sunday 18:00 ET
   const goldOpen = (dayIdx >= 1 && dayIdx <= 5) || (dayIdx === 0 && minutes >= (18 * 60))
 
+  // Show improved skeleton loading only when truly loading (no cached data)
+  if (loading && !totalMcap && !fng?.value && !top?.btc?.price) {
+    return (
+      <Box>
+        <Grid templateColumns={{ base: '1fr', md: 'repeat(3, 1fr)' }} gap={4}>
+          <GridItem>
+            <SkeletonMarketCapCard delay={0} />
+          </GridItem>
+          <GridItem>
+            <SkeletonSummaryCard delay={0.1} accentColor="orange.400" />
+          </GridItem>
+          <GridItem>
+            <SkeletonSummaryCard delay={0.2} accentColor="purple.500" />
+          </GridItem>
+          <GridItem>
+            <SkeletonSummaryCard delay={0.3} accentColor="purple.400" />
+          </GridItem>
+          <GridItem>
+            <SkeletonSummaryCard delay={0.4} accentColor="cyan.400" />
+          </GridItem>
+          <GridItem>
+            <SkeletonSummaryCard delay={0.5} accentColor="pink.400" />
+          </GridItem>
+          <GridItem>
+            <SkeletonSummaryCard delay={0.6} accentColor="yellow.400" />
+          </GridItem>
+          <GridItem>
+            <SkeletonSummaryCard delay={0.7} accentColor="blue.400" />
+          </GridItem>
+          <GridItem>
+            <SkeletonSummaryCard delay={0.8} accentColor="teal.400" showProgress={true} />
+          </GridItem>
+          <GridItem>
+            <SkeletonSummaryCard delay={0.9} accentColor="cyan.400" />
+          </GridItem>
+          <GridItem>
+            <SkeletonSummaryCard delay={1.0} accentColor="yellow.400" />
+          </GridItem>
+        </Grid>
+      </Box>
+    )
+  }
+
   return (
     <Box>
       <Grid templateColumns={{ base: '1fr', md: 'repeat(3, 1fr)' }} gap={4}>
@@ -122,11 +166,11 @@ export default function TotalSummaryView({ active = true }) {
                     </Skeleton>
                   </Text>
                 </HStack>
-                <StatHelpText>
+                <Box fontSize="sm" color="gray.500" mt={1} as="span">
                   <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "150px" : "auto"}>
                     All crypto, USD. 24h change
                   </Skeleton>
-                </StatHelpText>
+                </Box>
               </Stat>
               <Box position="absolute" top={2} right={3}><GlobeIcon /></Box>
             </Box>
@@ -169,11 +213,11 @@ export default function TotalSummaryView({ active = true }) {
                     </Skeleton>
                   </Text>
                 </HStack>
-                <StatHelpText>
+                <Box fontSize="sm" color="gray.500" mt={1} as="span">
                   <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "70px" : "auto"}>
                     24h change
                   </Skeleton>
-                </StatHelpText>
+                </Box>
               </Stat>
               <Box position="absolute" top={2} right={3}><TokenLogo base="BTC" /></Box>
             </Box>
@@ -201,11 +245,11 @@ export default function TotalSummaryView({ active = true }) {
                     </Skeleton>
                   </Text>
                 </HStack>
-                <StatHelpText>
+                <Box fontSize="sm" color="gray.500" mt={1} as="span">
                   <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "70px" : "auto"}>
                     24h change
                   </Skeleton>
-                </StatHelpText>
+                </Box>
               </Stat>
               <Box position="absolute" top={2} right={3}><TokenLogo base="ETH" /></Box>
             </Box>
@@ -236,11 +280,11 @@ export default function TotalSummaryView({ active = true }) {
                 <Skeleton isLoaded={!loading} mt={2} borderRadius="full">
                   <Progress mt={2} colorScheme={fgScheme} borderRadius="full" value={fearVal} max={100} height="2" />
                 </Skeleton>
-                <StatHelpText mt={2}>
+                <Box fontSize="sm" color="gray.500" mt={2} as="span">
                   <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "200px" : "auto"}>
                     {fng?.classification} • Scale 0 (Extreme Fear) — 100 (Extreme Greed)
                   </Skeleton>
-                </StatHelpText>
+                </Box>
               </Stat>
               <Box position="absolute" top={2} right={3}><GaugeIcon /></Box>
             </Box>
@@ -268,11 +312,11 @@ export default function TotalSummaryView({ active = true }) {
                     </Skeleton>
                   </Text>
                 </HStack>
-                <StatHelpText>
+                <Box fontSize="sm" color="gray.500" mt={1} as="span">
                   <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "80px" : "auto"}>
                     {spx?.unavailable ? 'CORS blocked' : 'Close (Stooq)'}
                   </Skeleton>
-                </StatHelpText>
+                </Box>
               </Stat>
               <Box position="absolute" top={2} right={3}><LineIcon /></Box>
             </Box>
@@ -300,11 +344,11 @@ export default function TotalSummaryView({ active = true }) {
                     </Skeleton>
                   </Text>
                 </HStack>
-                <StatHelpText>
+                <Box fontSize="sm" color="gray.500" mt={1} as="span">
                   <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "80px" : "auto"}>
                     {gold?.unavailable ? 'CORS blocked' : 'Close (Stooq)'}
                   </Skeleton>
-                </StatHelpText>
+                </Box>
               </Stat>
               <Box position="absolute" top={2} right={3}><GoldIcon /></Box>
             </Box>
