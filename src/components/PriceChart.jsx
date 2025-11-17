@@ -323,7 +323,10 @@ export default function PriceChart({ symbol, source = 'okx', showTimeControls = 
       </Glass>
 
       {/* Chart Summary - OHLC */}
-      {!loading && (chartData || error) && (
+      {(() => {
+        console.log('OHLC section check:', { loading, hasChartData: !!chartData, hasError: !!error, chartDataLength: chartData?.length })
+        return !loading && (chartData || error)
+      })() && (
         <Glass p={5}>
           <HStack justify="space-between" mb={4}>
             <Text fontSize="sm" fontWeight="semibold" color="gray.400">
