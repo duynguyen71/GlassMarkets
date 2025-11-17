@@ -1,4 +1,4 @@
-import { Badge, Box, HStack, IconButton, Input, Select, Table, TableContainer, Tbody, Td, Th, Thead, Tr, Text, useBreakpointValue, useColorModeValue, VStack } from '@chakra-ui/react'
+import { AlertDialog, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogOverlay, Badge, Box, Button, HStack, IconButton, Input, Select, Table, TableContainer, Tbody, Td, Th, Thead, Tr, Text, useBreakpointValue, useColorModeValue, useDisclosure, VStack } from '@chakra-ui/react'
 import { ChevronLeftIcon, ChevronRightIcon, StarIcon, TriangleUpIcon, TriangleDownIcon, MinusIcon, ArrowUpDownIcon } from '@chakra-ui/icons'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearch } from '../state/search'
@@ -13,12 +13,13 @@ import { useSource } from '../state/source'
 import { useChangeWindow } from '../state/changeWindow'
 import useWindowChange from '../hooks/useWindowChange'
 import { useFavorites } from '../state/favorites'
+import { SkeletonBox, SkeletonCard } from './SkeletonLoader'
 
 export default function TickerTable({ tickers, symbolType = 'SPOT', typeLabel, defaultPageSize = 25, onSelect, loading }) {
   const { t } = useI18n()
   const { source } = useSource()
   const { window: changeWin } = useChangeWindow()
-  const { toggleFavorite, isFavorite } = useFavorites()
+  const { toggleFavorite, removeFavorite, isFavorite } = useFavorites()
   const [query, setQuery] = useState('')
   const [sort, setSort] = useState({ key: 'volCcy24h', dir: 'desc' })
   const [page, setPage] = useState(1)
@@ -27,6 +28,9 @@ export default function TickerTable({ tickers, symbolType = 'SPOT', typeLabel, d
   const lastPriceRef = useRef(new Map())
   const timersRef = useRef(new Map())
   const [flash, setFlash] = useState({}) // { [symbol]: 'up'|'down' }
+  const { isOpen, onOpen, onClose } = useDisclosure()
+  const [symbolToRemove, setSymbolToRemove] = useState(null)
+  const cancelRef = useRef()
 
   const effectiveWin = symbolType === 'SPOT' ? changeWin : '24h'
 
@@ -120,6 +124,23 @@ export default function TickerTable({ tickers, symbolType = 'SPOT', typeLabel, d
     timersRef.current.clear()
   }, [])
 
+  const handleFavoriteClick = (symbol) => {
+    if (isFavorite(symbol)) {
+      setSymbolToRemove(symbol)
+      onOpen()
+    } else {
+      toggleFavorite(symbol)
+    }
+  }
+
+  const handleConfirmRemove = () => {
+    if (symbolToRemove) {
+      removeFavorite(symbolToRemove)
+      setSymbolToRemove(null)
+    }
+    onClose()
+  }
+
   return (
     <Box>
       <Input placeholder={t('table.searchSpot')} value={query} onChange={(e) => { setQuery(e.target.value); recordSearch(e.target.value) }} mb={2} variant="filled" bg="whiteAlpha.200" _hover={{ bg: 'whiteAlpha.300' }} _focus={{ bg: 'whiteAlpha.300' }} />
@@ -127,9 +148,7 @@ export default function TickerTable({ tickers, symbolType = 'SPOT', typeLabel, d
         showSkeleton ? (
           <VStack spacing={3} w="100%">
             {Array.from({ length: Math.min(pageSize, 5) }).map((_, i) => (
-              <Glass key={`msk-${i}`} p={3} w="100%">
-                <Box h="64px" bg="whiteAlpha.100" borderRadius="xl" />
-              </Glass>
+              <SkeletonCard key={`msk-${i}`} height="64px" />
             ))}
           </VStack>
         ) : filtered.length === 0 ? (
@@ -148,7 +167,7 @@ export default function TickerTable({ tickers, symbolType = 'SPOT', typeLabel, d
                 labels={labels}
                 typeDisplay={typeDisplay}
                 showFavorite={showFavoriteColumn}
-                toggleFavorite={toggleFavorite}
+                handleFavoriteClick={handleFavoriteClick}
                 isFavorite={isFavorite}
               />
             ))}
@@ -178,8 +197,8 @@ export default function TickerTable({ tickers, symbolType = 'SPOT', typeLabel, d
               {showSkeleton ? (
                 Array.from({ length: Math.min(pageSize, 10) }).map((_, i) => (
                   <Tr key={`sk-${i}`}>
-                    <Td colSpan={columnCount}>
-                      <Box py={2}><Box h="18px" bg="whiteAlpha.200" borderRadius="full" /></Box>
+                    <Td colSpan={columnCount} py={3}>
+                      <SkeletonBox h="20px" borderRadius="full" />
                     </Td>
                   </Tr>
                 ))
@@ -201,7 +220,7 @@ export default function TickerTable({ tickers, symbolType = 'SPOT', typeLabel, d
                           variant="ghost"
                           icon={<StarIcon />}
                           color={favoriteActive ? 'yellow.400' : 'gray.400'}
-                          onClick={() => toggleFavorite(row.symbol)}
+                          onClick={() => handleFavoriteClick(row.symbol)}
                         />
                       </Td>
                     )}
@@ -254,11 +273,38 @@ export default function TickerTable({ tickers, symbolType = 'SPOT', typeLabel, d
           </HStack>
         </HStack>
       </HStack>
+
+      <AlertDialog
+        isOpen={isOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={onClose}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent bg="rgba(17,25,40,0.95)" backdropFilter="blur(16px)" borderWidth="1px" borderColor="whiteAlpha.300">
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Remove from Favorites
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              Are you sure you want to remove {symbolToRemove} from your favorites?
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={onClose}>
+                Cancel
+              </Button>
+              <Button colorScheme="red" onClick={handleConfirmRemove} ml={3}>
+                Remove
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </Box>
   )
 }
 
-function MobileTickerCard({ row, symbolType, onSelect, effectiveWin, labels, typeDisplay, showFavorite, toggleFavorite, isFavorite }) {
+function MobileTickerCard({ row, symbolType, onSelect, effectiveWin, labels, typeDisplay, showFavorite, handleFavoriteClick, isFavorite }) {
   const change = effectiveWin === '24h' ? row.change24hPct : row._winPct
   const isLoading = effectiveWin !== '24h' && change == null
   const trendColor = (change || 0) >= 0 ? 'green.300' : 'red.300'
@@ -287,7 +333,7 @@ function MobileTickerCard({ row, symbolType, onSelect, effectiveWin, labels, typ
               variant="ghost"
               color={favoriteActive ? 'yellow.400' : 'gray.400'}
               borderRadius="full"
-              onClick={() => toggleFavorite(row.symbol)}
+              onClick={() => handleFavoriteClick(row.symbol)}
             />
           )}
           <Box textAlign="right">

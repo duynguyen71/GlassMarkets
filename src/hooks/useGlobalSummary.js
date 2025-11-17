@@ -5,6 +5,7 @@ async function fetchText(url) { const r = await fetch(url, { cache: 'no-cache' }
 
 const PROXY_BASE = import.meta?.env?.VITE_PROXY_BASE || ''
 const isDev = !!import.meta?.env?.DEV
+const STOOQ_PROXY_BASE = import.meta?.env?.VITE_STOOQ_PROXY || 'https://api.allorigins.win/raw?url='
 
 function cgUrl(path) {
   if (isDev) return `/_cg${path}`
@@ -20,6 +21,25 @@ function stooqUrl(path) {
   if (isDev) return `/_stooq${path}`
   if (PROXY_BASE) return `${PROXY_BASE}/stooq${path}`
   return `https://stooq.com${path}`
+}
+
+function buildStooqProxyUrl(target) {
+  if (!STOOQ_PROXY_BASE) {
+    return target
+  }
+  if (STOOQ_PROXY_BASE.includes('{{url}}')) {
+    return STOOQ_PROXY_BASE.replace('{{url}}', encodeURIComponent(target))
+  }
+  return `${STOOQ_PROXY_BASE}${encodeURIComponent(target)}`
+}
+
+async function fetchStooq(path) {
+  if (isDev || PROXY_BASE) {
+    return fetchText(stooqUrl(path))
+  }
+  const targetUrl = `https://stooq.com${path}`
+  const proxyUrl = buildStooqProxyUrl(targetUrl)
+  return fetchText(proxyUrl)
 }
 
 async function getFearGreed() {
@@ -93,7 +113,7 @@ function parseStooqDaily(csv) {
 async function getSP500() {
   try {
     // daily history to compute change; ^ encoded as %5E
-    const t = await fetchText(stooqUrl('/q/d/l/?s=%5Espx&i=d'))
+    const t = await fetchStooq('/q/d/l/?s=%5Espx&i=d')
     const r = parseStooqDaily(t)
     if (!r) return { last: null, unavailable: true }
     const chg = r.last - r.prev
@@ -107,7 +127,7 @@ async function getSP500() {
 
 async function getGold() {
   try {
-    const t = await fetchText(stooqUrl('/q/d/l/?s=xauusd&i=d'))
+    const t = await fetchStooq('/q/d/l/?s=xauusd&i=d')
     const r = parseStooqDaily(t)
     if (!r) return { last: null, unavailable: true }
     const chg = r.last - r.prev

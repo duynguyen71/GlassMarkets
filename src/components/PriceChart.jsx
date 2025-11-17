@@ -1,14 +1,22 @@
-import { Box, Spinner, Text, HStack, Button, ButtonGroup, VStack, SimpleGrid, Divider, Badge } from '@chakra-ui/react'
-import { useEffect, useState } from 'react'
+import { Box, Spinner, Text, HStack, Button, ButtonGroup, VStack, SimpleGrid, Divider, Badge, useColorModeValue } from '@chakra-ui/react'
+import { useEffect, useState, useRef } from 'react'
+import { createChart } from 'lightweight-charts'
 import axios from 'axios'
 import Glass from './Glass'
 
-// Simplified chart component using TradingView widget or simple data display
+// Candlestick chart component using lightweight-charts
 export default function PriceChart({ symbol, source = 'okx' }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [interval, setInterval] = useState('1h')
   const [chartData, setChartData] = useState(null)
+  const chartContainerRef = useRef(null)
+  const chartRef = useRef(null)
+  const candleSeriesRef = useRef(null)
+
+  const bgColor = useColorModeValue('rgba(255, 255, 255, 0.05)', 'rgba(17, 25, 40, 0.5)')
+  const textColor = useColorModeValue('#2D3748', '#E2E8F0')
+  const gridColor = useColorModeValue('rgba(0, 0, 0, 0.1)', 'rgba(255, 255, 255, 0.1)')
 
   useEffect(() => {
     if (!symbol) return
@@ -37,7 +45,7 @@ export default function PriceChart({ symbol, source = 'okx' }) {
         }
 
         const candleData = response.data.map((candle) => ({
-          time: new Date(candle[0]).toLocaleString(),
+          time: Math.floor(candle[0] / 1000), // Convert to seconds for lightweight-charts
           open: parseFloat(candle[1]),
           high: parseFloat(candle[2]),
           low: parseFloat(candle[3]),
@@ -56,6 +64,76 @@ export default function PriceChart({ symbol, source = 'okx' }) {
 
     fetchData()
   }, [symbol, interval])
+
+  // Create chart on mount
+  useEffect(() => {
+    if (!chartContainerRef.current) return
+
+    const chart = createChart(chartContainerRef.current, {
+      width: chartContainerRef.current.clientWidth,
+      height: 400,
+      layout: {
+        background: { color: 'transparent' },
+        textColor: textColor,
+      },
+      grid: {
+        vertLines: { color: gridColor },
+        horzLines: { color: gridColor },
+      },
+      crosshair: {
+        mode: 1,
+      },
+      rightPriceScale: {
+        borderColor: gridColor,
+      },
+      timeScale: {
+        borderColor: gridColor,
+        timeVisible: true,
+        secondsVisible: false,
+      },
+    })
+
+    const candleSeries = chart.addCandlestickSeries({
+      upColor: '#26a69a',
+      downColor: '#ef5350',
+      borderVisible: false,
+      wickUpColor: '#26a69a',
+      wickDownColor: '#ef5350',
+    })
+
+    chartRef.current = chart
+    candleSeriesRef.current = candleSeries
+
+    // Handle resize
+    const handleResize = () => {
+      if (chartContainerRef.current && chartRef.current) {
+        chartRef.current.applyOptions({
+          width: chartContainerRef.current.clientWidth,
+        })
+      }
+    }
+
+    window.addEventListener('resize', handleResize)
+
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      if (chartRef.current) {
+        chartRef.current.remove()
+        chartRef.current = null
+        candleSeriesRef.current = null
+      }
+    }
+  }, [textColor, gridColor])
+
+  // Update chart data
+  useEffect(() => {
+    if (candleSeriesRef.current && chartData && chartData.length > 0) {
+      candleSeriesRef.current.setData(chartData)
+      if (chartRef.current) {
+        chartRef.current.timeScale().fitContent()
+      }
+    }
+  }, [chartData])
 
   if (!symbol) {
     return (
@@ -111,6 +189,23 @@ export default function PriceChart({ symbol, source = 'okx' }) {
 
       {!loading && !error && chartData && (
         <>
+          {/* Candlestick Chart */}
+          <Glass p={5}>
+            <VStack align="stretch" spacing={4}>
+              <Text fontSize="sm" fontWeight="semibold" color="gray.400">
+                Candlestick Chart
+              </Text>
+              <Box
+                ref={chartContainerRef}
+                width="100%"
+                height="400px"
+                borderRadius="lg"
+                overflow="hidden"
+                bg={bgColor}
+              />
+            </VStack>
+          </Glass>
+
           {/* Chart Summary - OHLC */}
           <Glass p={5}>
             <HStack justify="space-between" mb={4}>
@@ -146,32 +241,6 @@ export default function PriceChart({ symbol, source = 'okx' }) {
                 <Text fontSize="lg" fontWeight="bold">${latestCandle?.close.toFixed(6)}</Text>
               </VStack>
             </SimpleGrid>
-          </Glass>
-
-          {/* TradingView Link */}
-          <Glass p={5}>
-            <VStack spacing={4}>
-              <Text fontSize="sm" color="gray.400" textAlign="center">
-                Interactive Chart
-              </Text>
-              <Text fontSize="xs" color="gray.500" textAlign="center">
-                Showing {chartData.length} candles for {symbol}
-              </Text>
-              <Button
-                as="a"
-                href={`https://www.tradingview.com/chart/?symbol=BINANCE:${symbol.replace('-', '')}`}
-                target="_blank"
-                colorScheme="blue"
-                size="md"
-                width="full"
-                maxW="300px"
-              >
-                View Full Chart on TradingView
-              </Button>
-              <Text fontSize="xs" color="gray.500" textAlign="center">
-                Opens in new tab with advanced charting tools
-              </Text>
-            </VStack>
           </Glass>
         </>
       )}

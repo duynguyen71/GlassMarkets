@@ -4,6 +4,7 @@ import useLocalStorage from '../hooks/useLocalStorage'
 const FavoritesContext = createContext({
   favorites: [],
   toggleFavorite: () => {},
+  removeFavorite: () => {},
   isFavorite: () => false,
 })
 
@@ -20,12 +21,17 @@ export function FavoritesProvider({ children }) {
     })
   }, [setFavorites])
 
+  const removeFavorite = useCallback((symbol) => {
+    if (!symbol) return
+    setFavorites((prev) => prev.filter((item) => item !== symbol))
+  }, [setFavorites])
+
   const isFavorite = useCallback((symbol) => {
     if (!symbol) return false
     return favorites.includes(symbol)
   }, [favorites])
 
-  const value = useMemo(() => ({ favorites, toggleFavorite, isFavorite }), [favorites, toggleFavorite, isFavorite])
+  const value = useMemo(() => ({ favorites, toggleFavorite, removeFavorite, isFavorite }), [favorites, toggleFavorite, removeFavorite, isFavorite])
 
   return <FavoritesContext.Provider value={value}>{children}</FavoritesContext.Provider>
 }

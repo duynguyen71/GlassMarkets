@@ -35,11 +35,14 @@ export default function TokenLogo({ base, size = 'sm', mr = 1 }) {
     const names = Array.from(new Set([sym, ALIAS[sym]]).values()).filter(Boolean)
     const urls = []
     for (const n of names) {
-      // Binance official currency logos
-      urls.push(`https://assets.binance.com/image/currency/logo/${n.toUpperCase()}.png`)
+      // Use CDN sources with better CORS support for production
+      // CoinGecko API proxy (free, no CORS issues)
+      urls.push(`https://assets.coingecko.com/coins/images/1/small/${n}.png`)
+      // jsdelivr CDN (reliable, good CORS)
       urls.push(`https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/${n}.png`)
       urls.push(`https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color/${n}.svg`)
-      urls.push(`https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/black/${n}.png`)
+      // Binance CDN (official)
+      urls.push(`https://bin.bnbstatic.com/image/admin_mgs_image_upload/20201110/${n.toUpperCase()}.png`)
     }
     return urls
   }, [sym])
@@ -97,6 +100,8 @@ export default function TokenLogo({ base, size = 'sm', mr = 1 }) {
       fontWeight="bold"
       borderWidth="1px"
       borderColor="whiteAlpha.300"
+      crossOrigin="anonymous"
+      loading="lazy"
       onError={() => setIdx((i) => i + 1)}
     />
   )
