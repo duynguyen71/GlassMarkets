@@ -66,6 +66,26 @@ export default defineConfig({
         secure: false,
         rewrite: (path) => path.replace(/^\/_stooq/, ''),
       },
+      '/_yahoo': {
+        target: 'https://query1.finance.yahoo.com',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/_yahoo/, ''),
+        configure: (proxy, _options) => {
+          proxy.on('error', (err, _req, _res) => {
+            console.log('Yahoo proxy error', err);
+          });
+          proxy.on('proxyReq', (proxyReq, req, _res) => {
+            proxyReq.setHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
+          });
+        },
+      },
+      '/_fmp': {
+        target: 'https://financialmodelingprep.com',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/_fmp/, ''),
+      },
     },
   },
 })

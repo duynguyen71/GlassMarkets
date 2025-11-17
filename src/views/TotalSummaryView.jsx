@@ -42,7 +42,7 @@ function Card({ title, value, help, accent, gradient, icon, loading }) {
 
 export default function TotalSummaryView({ active = true }) {
   const { t } = useI18n()
-  const { loading, fng, totalMcap, totalMcapChg, totalMcapChgPct, btcDom, ethDom, totalVolumeUsd, activeCryptos, markets, spx, gold, top } = useGlobalSummary(active)
+  const { loading, fng, totalMcap, totalMcapChg, totalMcapChgPct, btcDom, ethDom, usdtDom, xrpDom, bnbDom, solDom, usdcDom, totalVolumeUsd, activeCryptos, markets, marketCapEth, marketCapBtc, upcomingICOs, ongoingICOs, endedICOs, updatedAt, spx, gold, top, defi, gas } = useGlobalSummary(active)
   const altDom = typeof btcDom === 'number' ? Math.max(0, 100 - btcDom) : null
   const fearVal = Number(fng?.value || 0)
   const fgScheme = fearVal >= 70 ? 'green' : fearVal >= 55 ? 'teal' : fearVal >= 45 ? 'yellow' : fearVal >= 25 ? 'orange' : 'red'
@@ -68,6 +68,21 @@ export default function TotalSummaryView({ active = true }) {
   )
   const GoldIcon = () => (
     <IconCircle><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 10l4-6 4 6H8Zm-5 8l3-6h12l3 6H3Z"/></svg></IconCircle>
+  )
+  const DefiIcon = () => (
+    <IconCircle><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg></IconCircle>
+  )
+  const GasIcon = () => (
+    <IconCircle><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18 6h-2c0-2.21-1.79-4-4-4H8c-2.21 0-4 1.79-4 4v2c0 2.21 1.79 4 4 4h4c2.21 0 4-1.79 4-4v-2zm-6 0H8c-1.1 0-2-.9-2-2V6h2v2c0 1.1.9 2 2 2zm4 0c1.1 0 2-.9 2-2V6h2v2c0 1.1-.9 2-2 2z"/></svg></IconCircle>
+  )
+  const StablecoinIcon = () => (
+    <IconCircle><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M2 6h20v12H2V6zm2 2v8h16V8H4zm2 2h12v4H6v-4z"/></svg></IconCircle>
+  )
+  const ICOIcon = () => (
+    <IconCircle><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l-5.5 9h11L12 2zm0 0l-5.5 9h11L12 2zm-2 7h4v2h-4V9z"/></svg></IconCircle>
+  )
+  const UpdateIcon = () => (
+    <IconCircle><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.45 1.45C20.45 14.99 21 13.55 21 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.25 8.95C6.27 10.01 7.55 11 9 11v2H4v2h5v2c0 1.45.99 2.73 2.05 3.8l-1.45 1.45c-.83.45-1.79.7-2.8.7z"/></svg></IconCircle>
   )
 
   // Helpers: determine if exchanges are trading now (ET-based heuristic)
@@ -303,7 +318,7 @@ export default function TotalSummaryView({ active = true }) {
                 <HStack justify="space-between">
                   <StatNumber fontWeight="extrabold">
                     <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "100px" : "auto"}>
-                      {spx?.last ? formatNumber(spx.last) : (spx?.unavailable ? 'N/A' : '-')}
+                      {spx?.last ? formatNumber(spx.last) : (loading ? 'Loading...' : '-')}
                     </Skeleton>
                   </StatNumber>
                   <Text color={spx?.chg >= 0 ? 'green.300' : 'red.300'}>
@@ -314,7 +329,7 @@ export default function TotalSummaryView({ active = true }) {
                 </HStack>
                 <Box fontSize="sm" color="gray.500" mt={1} as="span">
                   <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "80px" : "auto"}>
-                    {spx?.unavailable ? 'CORS blocked' : 'Close (Stooq)'}
+                    {spx?.fallback ? 'Market data' : spx?.source ? `Close (${spx.source})` : 'Loading...'}
                   </Skeleton>
                 </Box>
               </Stat>
@@ -335,7 +350,7 @@ export default function TotalSummaryView({ active = true }) {
                 <HStack justify="space-between">
                   <StatNumber fontWeight="extrabold">
                     <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "100px" : "auto"}>
-                      {gold?.last ? formatNumber(gold.last) : (gold?.unavailable ? 'N/A' : '-')}
+                      {gold?.last ? formatNumber(gold.last) : (loading ? 'Loading...' : '-')}
                     </Skeleton>
                   </StatNumber>
                   <Text color={gold?.chg >= 0 ? 'green.300' : 'red.300'}>
@@ -346,13 +361,31 @@ export default function TotalSummaryView({ active = true }) {
                 </HStack>
                 <Box fontSize="sm" color="gray.500" mt={1} as="span">
                   <Skeleton isLoaded={!loading} display="inline-block" minW={loading ? "80px" : "auto"}>
-                    {gold?.unavailable ? 'CORS blocked' : 'Close (Stooq)'}
+                    {gold?.fallback ? 'Market data' : gold?.source ? `Spot price (${gold.source})` : 'Loading...'}
                   </Skeleton>
                 </Box>
               </Stat>
               <Box position="absolute" top={2} right={3}><GoldIcon /></Box>
             </Box>
           </Glass>
+        </GridItem>
+        <GridItem>
+          <Card title="DeFi TVL" value={defi?.totalTVL ? formatUSD(defi.totalTVL) : '-'} help={defi?.totalTVL ? `Total Value Locked in DeFi (${defi.chgPct >= 0 ? '+' : ''}${defi.chgPct.toFixed(2)}%)` : 'Loading DeFi data'} accent="purple.400" gradient="linear(to-br, purple.400, pink.500)" icon={<DefiIcon />} loading={loading} />
+        </GridItem>
+        <GridItem>
+          <Card title="ETH Gas Price" value={gas?.standard ? `${gas.standard} Gwei` : '-'} help={gas?.fast && gas?.safe ? `Safe: ${gas.safe} | Fast: ${gas.fast} Gwei` : 'Loading gas data'} accent="blue.400" gradient="linear(to-br, blue.400, cyan.500)" icon={<GasIcon />} loading={loading} />
+        </GridItem>
+        <GridItem>
+          <Card title="USDT Dominance" value={typeof usdtDom === 'number' ? `${usdtDom.toFixed(2)}%` : '-'} help="Tether share of total market cap" accent="green.400" gradient="linear(to-br, green.400, teal.400)" icon={<StablecoinIcon />} loading={loading} />
+        </GridItem>
+        <GridItem>
+          <Card title="XRP Dominance" value={typeof xrpDom === 'number' ? `${xrpDom.toFixed(2)}%` : '-'} help="Ripple share of total market cap" accent="black" gradient="linear(to-br, gray.400, black)" icon={<TokenLogo base="XRP" />} loading={loading} />
+        </GridItem>
+        <GridItem>
+          <Card title="SOL Dominance" value={typeof solDom === 'number' ? `${solDom.toFixed(2)}%` : '-'} help="Solana share of total market cap" accent="purple.400" gradient="linear(to-br, purple.400, purple.600)" icon={<TokenLogo base="SOL" />} loading={loading} />
+        </GridItem>
+        <GridItem>
+          <Card title="Active ICOs" value={ongoingICOs || 0} help={`${upcomingICOs || 0} upcoming • ${endedICOs || 0} ended`} accent="yellow.400" gradient="linear(to-br, yellow.400, orange.500)" icon={<ICOIcon />} loading={loading} />
         </GridItem>
       </Grid>
       <Text mt={4} color="gray.400" fontSize="sm">Sources: CoinGecko (global), Alternative.me (Fear&Greed), Stooq (SPX/XAUUSD). Some sources may rate-limit or block cross-origin in certain networks.</Text>
