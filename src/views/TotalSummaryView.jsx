@@ -1,4 +1,4 @@
-import { Box, Grid, GridItem, Heading, HStack, Progress, Skeleton, Stat, StatLabel, StatNumber, Text } from '@chakra-ui/react'
+import { Box, Grid, GridItem, Heading, HStack, Progress, Skeleton, Stat, StatLabel, StatNumber, Text, SimpleGrid } from '@chakra-ui/react'
 import Glass from '../components/Glass'
 import useGlobalSummary from '../hooks/useGlobalSummary'
 import { formatNumber, formatUSD } from '../utils/number'
@@ -6,6 +6,7 @@ import { useI18n } from '../i18n'
 import IconCircle from '../components/IconCircle'
 import TokenLogo from '../components/TokenLogo'
 import { SkeletonMarketCapCard, SkeletonSummaryCard } from '../components/SkeletonLoader'
+import PriceChart from '../components/PriceChart'
 
 function Card({ title, value, help, accent, gradient, icon, loading }) {
   return (
@@ -388,6 +389,15 @@ export default function TotalSummaryView({ active = true }) {
           <Card title="Active ICOs" value={ongoingICOs || 0} help={`${upcomingICOs || 0} upcoming • ${endedICOs || 0} ended`} accent="yellow.400" gradient="linear(to-br, yellow.400, orange.500)" icon={<ICOIcon />} loading={loading} />
         </GridItem>
       </Grid>
+
+      {/* Bitcoin Price Chart - Full Width */}
+      <Box mt={6}>
+        <Glass p={5}>
+          <Heading size="md" mb={4} color="white">Bitcoin Price Chart</Heading>
+          <PriceChart symbol="BTC-USDT" showTimeControls={false} />
+        </Glass>
+      </Box>
+
       <Text mt={4} color="gray.400" fontSize="sm">Sources: CoinGecko (global), Alternative.me (Fear&Greed), Stooq (SPX/XAUUSD). Some sources may rate-limit or block cross-origin in certain networks.</Text>
     </Box>
   )
